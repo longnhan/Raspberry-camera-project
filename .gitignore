@@ -1,0 +1,8 @@
+# Ignore Visual Studio Code settings
+.vscode/
+
+# Ignore build output
+build/
+
+# Ignore specific toolchain directory
+toolchain/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/
