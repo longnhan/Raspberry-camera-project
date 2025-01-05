@@ -5,6 +5,7 @@ set(GUI_SOURCES
     gui_display.cpp
     gui_gallery.cpp
     gui_settings.cpp
+    gui_display.h
 )
 
 # Create a static library for the GUI module

@@ -4,6 +4,7 @@
 set(CAMERA_SOURCES
     camera_control.cpp
     camera_log.cpp
+    camera_control.h
 )
 
 # Create a static library for the Camera module

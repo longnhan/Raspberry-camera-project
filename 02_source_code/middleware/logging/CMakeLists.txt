@@ -5,6 +5,7 @@ set(LOGGING_SOURCES
     debug_log.cpp
     error_log.cpp
     event_log.cpp
+    debug_log.h
 )
 
 # Create a static library for the Logging module
