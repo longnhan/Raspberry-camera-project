@@ -1,20 +1,20 @@
 #!/bin/bash
 
 # Define project root and build directory
-PROJECT_DIR=$(pwd)
+PROJECT_DIR=$(pwd)/..
 BUILD_DIR="${PROJECT_DIR}/build"
 
-# Clean previous builds
+# Clean previous builds if they exist
 echo "Cleaning previous build..."
-rm -rf $BUILD_DIR
+rm -rf "$BUILD_DIR"
 
-# Create a new build directory
+# Create a new build directory at the root of the project
 echo "Creating new build directory..."
-mkdir -p $BUILD_DIR
+mkdir -p "$BUILD_DIR"
 
 # Run CMake to configure the project
 echo "Configuring the project using CMake..."
-cd $BUILD_DIR
+cd "$BUILD_DIR" || exit 1  # Ensure the script stops if changing to the build directory fails
 cmake ..
 
 # Build the project
