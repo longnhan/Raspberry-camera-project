@@ -22,7 +22,7 @@ constexpr auto GPIO_UNEXPORT = "/sys/class/gpio/unexport";
 constexpr auto GPIO_INPUT = "in";
 constexpr auto GPIO_OUTPUT = "out";
 
-constexpr auto USR_BUTTON = "117";
+constexpr auto USR_BUTTON = "528";
 
 #endif /* GW_BOARD */
 
