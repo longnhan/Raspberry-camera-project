@@ -3,7 +3,7 @@
 #include "camera_control.h"
 #include "gpio.h"
 #include "gui_display.h"
-#include "debug_log.h"
+#include "log.h"
 
 void initializeModules() 
 {
