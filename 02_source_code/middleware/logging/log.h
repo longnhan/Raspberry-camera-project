@@ -9,11 +9,12 @@
 #include <ctime>
 #include <thread>
 #include <mutex>
+#include <cstdlib>
  
 // Fix path log file
-#define ERRORPATH  "/home/pi/error_log.csv"
-#define DEBUGPATH  "/home/pi/debug_log.csv"
-#define STATUSPATH "/home/pi/status_log.csv"
+#define ERRORPATH  (std::string(std::getenv("HOME")).append("/error_log.csv"))
+#define DEBUGPATH  (std::string(std::getenv("HOME")).append("/debug_log.csv"))
+#define STATUSPATH (std::string(std::getenv("HOME")).append("/status_log.csv"))
 #define LOG_ERR(...) (logger::getInstance()->writeLog(logLevel::Error, __FILE__, __LINE__, __VA_ARGS__))
 #define LOG_DBG(...) (logger::getInstance()->writeLog(logLevel::Debug, __FILE__, __LINE__, __VA_ARGS__))
 #define LOG_SST(...) (logger::getInstance()->writeLog(logLevel::Status, __FILE__, __LINE__, __VA_ARGS__))
@@ -24,9 +25,9 @@
 // Use macro LOG_SST to write log status
 // Example:
 // int temperature = 45 ;
-// LOG_E("Fail to open file");
-// LOG_D("This function run very good");
-// LOG_S("Too hot, temperature is :", temperature, " Celsius!" )
+// LOG_ERR("Fail to open file");
+// LOG_DBG("This function run very good");
+// LOG_SST("Too hot, temperature is :", temperature, " Celsius!" )
 /***************************************/
 enum logLevel
 {  
@@ -56,7 +57,6 @@ private:
     // private variable
     static std::mutex mtx;                               // Mutex to access thread safety
     static logger* loggerPtr;                          // Static pointer to the logger instance
- 
  public:
     // Destructor
     ~logger();  
