@@ -1,71 +1,96 @@
 #include "gpio.h"
-#include <iostream>
-#include <cstring>
-#include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdexcept>
 
-GPIO::GPIO(const std::string& pin, const std::string& direction)
-    : gpio_pin(pin) {
-    std::cout << "Set GPIO " << direction << " for pin " << pin << std::endl;
-
+GPIO::GPIO(const std::string& pin, const std::string& direction, const uint8_t active_val)
+    : gpio_pin(pin), gpio_active_val(active_val)
+{
     set_gpio_path(pin);
     export_gpio();
     set_direction(direction);
+    set_active_val(active_val);
 
-    if (direction == GPIO_OUTPUT) {
+    if (direction == GPIO_OUTPUT)
+    {
         std::cout << "GPIO set to output\n";
         write(GPIO_RESET);
-    } else {
+    } 
+    else 
+    {
         std::cout << "GPIO set to input\n";
     }
 }
 
-GPIO::~GPIO() {
+GPIO::~GPIO() 
+{
     close();
 }
 
 void GPIO::set_gpio_path(const std::string& pin) {
     fp_direction = std::string(GPIO_PATH) + pin + "/direction";
     fp_value = std::string(GPIO_PATH) + pin + "/value";
+    fp_edge = std::string(GPIO_PATH) + pin + "/edge";
+    fp_active_low = std::string(GPIO_PATH) + pin + "/active_low";
+    std::cout << "finish set_gpio_path";
 }
 
-void GPIO::export_gpio() {
+void GPIO::export_gpio() 
+{
     std::ofstream export_file(GPIO_EXPORT);
-    if (!export_file.is_open()) {
+    if (!export_file.is_open()) 
+    {
         throw std::runtime_error("Unable to open export file");
     }
     export_file << gpio_pin;
+    std::cout << "finish export gpio";
 }
 
-void GPIO::unexport_gpio() {
+void GPIO::unexport_gpio() 
+{
     std::ofstream unexport_file(GPIO_UNEXPORT);
-    if (!unexport_file.is_open()) {
+    if (!unexport_file.is_open()) 
+    {
         throw std::runtime_error("Unable to open unexport file");
     }
     unexport_file << gpio_pin;
 }
 
-void GPIO::set_direction(const std::string& direction) {
+void GPIO::set_direction(const std::string& direction) 
+{
     std::ofstream direction_file(fp_direction);
-    if (!direction_file.is_open()) {
+    std::cout << fp_direction << std::endl;
+    if (!direction_file.is_open()) 
+    {
         throw std::runtime_error("Unable to open direction file");
     }
     direction_file << direction;
+    std::cout << "finish set_direction";
 }
 
-void GPIO::write(const std::string& state) {
+void GPIO::set_active_val(const uint8_t active_value)
+{
+    std::ofstream active_low_file(fp_active_low);
+    if (!active_low_file.is_open()) 
+    {
+        throw std::runtime_error("Unable to open direction file");
+    }
+    active_low_file << active_value;
+    std::cout << "finish set_active_val";
+}
+
+void GPIO::write(const std::string& state) 
+{
     std::ofstream value_file(fp_value);
-    if (!value_file.is_open()) {
+    if (!value_file.is_open()) 
+    {
         throw std::runtime_error("Unable to open value file");
     }
     value_file << state;
 }
 
-uint8_t GPIO::read() {
+uint8_t GPIO::read() 
+{
     std::ifstream value_file(fp_value);
-    if (!value_file.is_open()) {
+    if (!value_file.is_open()) 
+    {
         throw std::runtime_error("Unable to open value file");
     }
     std::string buf;
@@ -74,16 +99,23 @@ uint8_t GPIO::read() {
     return static_cast<uint8_t>(std::stoi(buf));
 }
 
-void GPIO::toggle() {
-    if (read() == 0) {
+void GPIO::toggle() 
+{
+    if (read() == 0) 
+    {
         write(GPIO_SET);
-    } else {
+    } 
+    else 
+    {
         write(GPIO_RESET);
     }
 }
 
-void GPIO::close() {
+void GPIO::close() 
+{
     unexport_gpio();
     fp_direction.clear();
     fp_value.clear();
+    fp_active_low.clear();
+    fp_edge.clear();
 }
