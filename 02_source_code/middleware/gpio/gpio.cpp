@@ -3,10 +3,10 @@
 GPIO::GPIO(const std::string& pin, const std::string& direction, const uint8_t active_val)
     : gpio_pin(pin), gpio_active_val(active_val)
 {
-    set_gpio_path(pin);
-    export_gpio();
+    set_gpio_path(gpio_pin);
+    export_gpio(gpio_pin);
     set_direction(direction);
-    set_active_val(active_val);
+    set_active_val(gpio_active_val);
 
     if (direction == GPIO_OUTPUT)
     {
@@ -32,25 +32,25 @@ void GPIO::set_gpio_path(const std::string& pin) {
     std::cout << "finish set_gpio_path";
 }
 
-void GPIO::export_gpio() 
+void GPIO::export_gpio(const std::string& pin) 
 {
     std::ofstream export_file(GPIO_EXPORT);
     if (!export_file.is_open()) 
     {
         throw std::runtime_error("Unable to open export file");
     }
-    export_file << gpio_pin;
+    export_file << pin;
     std::cout << "finish export gpio";
 }
 
-void GPIO::unexport_gpio() 
+void GPIO::unexport_gpio(const std::string& pin) 
 {
     std::ofstream unexport_file(GPIO_UNEXPORT);
     if (!unexport_file.is_open()) 
     {
         throw std::runtime_error("Unable to open unexport file");
     }
-    unexport_file << gpio_pin;
+    unexport_file << pin;
 }
 
 void GPIO::set_direction(const std::string& direction) 
@@ -113,7 +113,7 @@ void GPIO::toggle()
 
 void GPIO::close() 
 {
-    unexport_gpio();
+    unexport_gpio(gpio_pin);
     fp_direction.clear();
     fp_value.clear();
     fp_active_low.clear();

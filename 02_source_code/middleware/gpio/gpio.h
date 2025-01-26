@@ -27,7 +27,7 @@ constexpr auto GPIO_UNEXPORT = "/sys/class/gpio/unexport";
 constexpr auto GPIO_INPUT = "in";
 constexpr auto GPIO_OUTPUT = "out";
 
-constexpr auto USR_BUTTON = "528";
+constexpr auto USR_BUTTON = "528"; //gpio16 + gpiochip512
 
 class GPIO {
 private:
@@ -39,8 +39,8 @@ private:
     std::string gpio_pin;
     uint8_t gpio_active_val;
 
-    void export_gpio();
-    void unexport_gpio();
+    void export_gpio(const std::string& pin);
+    void unexport_gpio(const std::string& pin);
     void set_gpio_path(const std::string& pin);
     void set_direction(const std::string& direction);
     void set_active_val(const uint8_t active_value);
