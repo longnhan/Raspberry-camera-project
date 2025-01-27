@@ -99,13 +99,13 @@ uint8_t GPIO::read()
     return static_cast<uint8_t>(std::stoi(buf));
 }
 
-void GPIO::toggle() 
+void GPIO::toggle()
 {
-    if (read() == 0) 
+    if (read() == 0)
     {
         write(GPIO_SET);
     } 
-    else 
+    else
     {
         write(GPIO_RESET);
     }

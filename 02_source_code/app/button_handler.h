@@ -5,6 +5,9 @@
 #include <cstdint>
 #include <iostream>
 
+constexpr auto EN_ACTIVE_HIGH  = GPIO_ACTIVE_H;
+constexpr auto SHUTTER_BUTTON = GPIO_PIN_16;
+
 class Button : public GPIO {
 private:
     bool activeHigh;
