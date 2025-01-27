@@ -27,7 +27,7 @@ constexpr auto GPIO_UNEXPORT = "/sys/class/gpio/unexport";
 constexpr auto GPIO_INPUT = "in";
 constexpr auto GPIO_OUTPUT = "out";
 
-constexpr auto USR_BUTTON = "528"; //gpio16 + gpiochip512
+constexpr auto GPIO_PIN_16 = "528"; //gpio16 + gpiochip512
 
 class GPIO {
 private:
