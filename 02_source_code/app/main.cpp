@@ -1,24 +1,14 @@
 #include <iostream>
 
 #include "camera_control.h"
-#include "gpio.h"
+#include "button_handler.h"
 #include "gui_display.h"
 #include "debug_log.h"
+#include <unistd.h>
 
 void initializeModules() 
 {
-    // // Example initialization of each module
-    // std::cout << "Initializing camera module..." << std::endl;
-    // camera::initializeCamera();
 
-    // std::cout << "Initializing GPIO module..." << std::endl;
-    // gpio::initializeGPIO();
-
-    // std::cout << "Initializing GUI module..." << std::endl;
-    // gui::initializeDisplay();
-
-    // std::cout << "Initializing logging module..." << std::endl;
-    // logging::initializeLogging();
 }
 
 int main() 
@@ -28,10 +18,14 @@ int main()
 
     // Main loop or functionality goes here
     std::cout << "Application started!" << std::endl;
+    Button test(USR_BUTTON, GPIO_INPUT, GPIO_ACTIVE_H);
+    // Read the input button state
 
     // Placeholder for the main loop or application logic
-    while (true) 
+    while (true)
     {
+        // test.read();
+        usleep(500000);
         // Application logic (empty for now)
     }
 
