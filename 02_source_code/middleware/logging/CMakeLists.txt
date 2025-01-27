@@ -2,10 +2,8 @@
 
 # List source files for the logging module
 set(LOGGING_SOURCES
-    debug_log.cpp
-    error_log.cpp
-    event_log.cpp
-    debug_log.h
+    log.cpp
+    log.h
 )
 
 # Create a static library for the Logging module
