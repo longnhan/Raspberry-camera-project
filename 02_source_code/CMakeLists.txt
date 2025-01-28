@@ -4,8 +4,11 @@ cmake_minimum_required(VERSION 3.10)
 # Set the project name
 project(Rasp_Camera_App VERSION 1.0)
 
-# Enable C++14 support
-set(CMAKE_CXX_STANDARD 14)
+# Enable C++17 support
+set(CMAKE_CXX_STANDARD 17)
+
+# Add flag standard c++17
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 # Set toolchain for cross-compilation (C++ compiler)
 set(CMAKE_CXX_COMPILER ${CMAKE_SOURCE_DIR}/tools/cross-pi-gcc-10.2.0-32/bin/arm-linux-gnueabihf-g++)

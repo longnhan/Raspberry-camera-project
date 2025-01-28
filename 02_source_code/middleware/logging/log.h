@@ -10,14 +10,26 @@
 #include <thread>
 #include <mutex>
 #include <cstdlib>
- 
+#include <sys/stat.h> // for function mkdir 
 // Fix path log file
-#define ERRORPATH  (std::string(std::getenv("HOME")).append("/error_log.csv"))
-#define DEBUGPATH  (std::string(std::getenv("HOME")).append("/debug_log.csv"))
-#define STATUSPATH (std::string(std::getenv("HOME")).append("/status_log.csv"))
-#define LOG_ERR(...) (logger::getInstance()->writeLog(logLevel::Error, __FILE__, __LINE__, __VA_ARGS__))
-#define LOG_DBG(...) (logger::getInstance()->writeLog(logLevel::Debug, __FILE__, __LINE__, __VA_ARGS__))
-#define LOG_SST(...) (logger::getInstance()->writeLog(logLevel::Status, __FILE__, __LINE__, __VA_ARGS__))
+#define LOG_DIR       (std::string(std::getenv("HOME")).append("/log_file"))
+#define LOG_SUB_DIR   (LOG_DIR.append("/").append(getDirLog()))
+#define ERRORFILE     (LOG_SUB_DIR.append("/log_error.csv"))
+#define DEBUGFILE     (LOG_SUB_DIR.append("/log_debug.csv"))
+#define STATUSFILE    (LOG_SUB_DIR.append("/log_status.csv"))
+
+#define ENABLE_LOG_FILE       // |  Comment two macro to off debug log
+#define ENABLE_LOG_TERMINAL   // |    
+
+// Two macro will be control output of log debug
+#if defined(ENABLE_LOG_FILE) || defined (ENABLE_LOG_TERMINAL)
+    #define LOG_DBG(...)  (logger::getInstance()->writeLog(logLevel::Debug, __FILE__, __LINE__, __VA_ARGS__))
+#else
+    #define LOG_DBG(...) 
+#endif
+
+#define LOG_ERR(...)  (logger::getInstance()->writeLog(logLevel::Error, __FILE__, __LINE__, __VA_ARGS__))
+#define LOG_SST(...)  (logger::getInstance()->writeLog(logLevel::Status, __FILE__, __LINE__, __VA_ARGS__))
 /***************************************/
 // User reference
 // Use macro LOG_ERR to write log error
@@ -55,18 +67,14 @@ private:
    
 
     // private variable
-    static std::mutex mtx;                               // Mutex to access thread safety
-    static logger* loggerPtr;                          // Static pointer to the logger instance
- public:
-    // Destructor
-    ~logger();  
- 
+    inline static std::mutex mtx {};                                       // Mutex to access thread safety
+    inline static logger* loggerPtr = nullptr;                          // Static pointer to the logger instance
+    // Get file name
+    std::string getDirLog();
     // Method native write log to log file
-    void  writeLogIpm(logLevel logLevel_,std::string fileName, int row, std::string message);
-   
+    void writeLogIpm(logLevel logLevel_,std::string fileName, int row, std::string message);
     // Endpoint for variadic
     void writeLog(std::stringstream& os);
- 
     // Recursive to handle each for each argument
     template <typename T,typename... Types>
     void writeLog(std::stringstream& os, T var1, Types... var2)
@@ -75,6 +83,11 @@ private:
         writeLog(os, var2...);
  
     }
+    
+
+ public:
+    // Destructor
+    ~logger();  
     // Main write log is called by macro LOG_*
     template <typename... Types>
     void writeLog(logLevel logLevel_,std::string fileName, int row,Types... args)
@@ -83,7 +96,7 @@ private:
  
         writeLog(os,args...);
         writeLogIpm(logLevel_,fileName,row,os.str());
-    }
+    }   
     static logger* getInstance();
  
 };
