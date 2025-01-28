@@ -1,6 +1,6 @@
 #include "button_handler.h"
 
-Button::Button(const std::string& pin, const std::string& direction, const uint8_t active_val)
+Button::Button(const std::string& pin, const std::string& direction, const int active_val)
     : GPIO(pin, direction, active_val)
 {
 

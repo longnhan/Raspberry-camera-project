@@ -15,8 +15,8 @@
 /* Define GPIO state */
 constexpr auto GPIO_SET = "1";
 constexpr auto GPIO_RESET = "0";
-constexpr auto GPIO_ACTIVE_H = 1;
-constexpr auto GPIO_ACTIVE_L = 0;
+constexpr int GPIO_ACTIVE_H = 1;
+constexpr int GPIO_ACTIVE_L = 0;
 
 /* Define GPIO system files */
 constexpr auto GPIO_PATH = "/sys/class/gpio/gpio";
@@ -43,10 +43,10 @@ private:
     void unexport_gpio(const std::string& pin);
     void set_gpio_path(const std::string& pin);
     void set_direction(const std::string& direction);
-    void set_active_val(const uint8_t active_value);
+    void set_active_val(const int active_value);
 
 public:
-    GPIO(const std::string& pin, const std::string& direction, const uint8_t active_val);
+    GPIO(const std::string& pin, const std::string& direction, const int active_val);
     ~GPIO();
     uint8_t read();
     void toggle();

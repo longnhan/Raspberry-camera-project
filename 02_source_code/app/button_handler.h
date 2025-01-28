@@ -5,14 +5,15 @@
 #include <cstdint>
 #include <iostream>
 
-constexpr auto EN_ACTIVE_HIGH  = GPIO_ACTIVE_H;
+constexpr int EN_ACTIVE_HIGH  = GPIO_ACTIVE_H;
+constexpr int EN_ACTIVE_LOW  = GPIO_ACTIVE_L;
 constexpr auto SHUTTER_BUTTON = GPIO_PIN_16;
 
 class Button : public GPIO {
 private:
     bool activeHigh;
 public:
-    Button(const std::string& pin, const std::string& direction, const uint8_t active_val);
+    Button(const std::string& pin, const std::string& direction, const int active_val);
     ~Button();
 
     uint8_t read();
