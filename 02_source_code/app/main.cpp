@@ -1,6 +1,6 @@
 #include "main.h"
 
-Button test(SHUTTER_BUTTON, GPIO_INPUT, EN_ACTIVE_HIGH);
+Button shutter_btn(SHUTTER_BUTTON, GPIO_INPUT, EN_ACTIVE_HIGH);
 
 void initializeModules() 
 {
