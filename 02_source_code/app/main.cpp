@@ -1,24 +1,10 @@
-#include <iostream>
+#include "main.h"
 
-#include "camera_control.h"
-#include "gpio.h"
-#include "gui_display.h"
-#include "log.h"
+Button shutter_btn(SHUTTER_BUTTON, GPIO_INPUT, EN_ACTIVE_HIGH);
 
 void initializeModules() 
 {
-    // // Example initialization of each module
-    // std::cout << "Initializing camera module..." << std::endl;
-    // camera::initializeCamera();
 
-    // std::cout << "Initializing GPIO module..." << std::endl;
-    // gpio::initializeGPIO();
-
-    // std::cout << "Initializing GUI module..." << std::endl;
-    // gui::initializeDisplay();
-
-    // std::cout << "Initializing logging module..." << std::endl;
-    // logging::initializeLogging();
 }
 
 int main() 
@@ -26,13 +12,11 @@ int main()
     // Initialize all modules
     initializeModules();
 
-    // Main loop or functionality goes here
     std::cout << "Application started!" << std::endl;
-
-    // Placeholder for the main loop or application logic
-    while (true) 
+    
+    while (true)
     {
-        // Application logic (empty for now)
+
     }
 
     return 0;
