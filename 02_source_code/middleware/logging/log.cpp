@@ -1,15 +1,35 @@
 #include <iostream>
 #include "log.h"
  
-// Default static variable
-std::mutex logger::mtx;
-logger* logger::loggerPtr = nullptr;
 // Constructor
-logger::logger():
-                errorFile(ERRORPATH,std::ios::app),
-                debugFile(DEBUGPATH,std::ios::app),
-                statusFile(STATUSPATH,std::ios::app)
-{  
+logger::logger()                
+{   
+    // Create directory log file
+    umask(0);
+    if(mkdir(LOG_DIR.c_str(),0777) == 0  )
+    {
+        std::cerr << "Create directory " << LOG_DIR << " successfull" << std::endl;
+    }
+    else
+    {
+        std::cerr << "Directory " << LOG_DIR << " exist or can not create" << std::endl;
+    }
+
+    // Create sub directory log file
+    umask(0);
+    if(mkdir(LOG_SUB_DIR.c_str(),0777)==0 )
+    {
+        std::cerr << "Create directory " << LOG_SUB_DIR << " successfull" << std::endl;
+    }
+    else
+    {
+        std::cerr << "Directory " << LOG_SUB_DIR << " exist or can not create" << std::endl;
+    }
+    // Open log file
+    errorFile.open(ERRORFILE,std::ios::app);
+    debugFile.open(DEBUGFILE,std::ios::app);
+    statusFile.open(STATUSFILE,std::ios::app);
+    // Check error open file 
     if((!errorFile)||(!debugFile)||(!statusFile))
     {
         std::cerr << "can not open log file "<<std::endl;
@@ -38,6 +58,25 @@ logger::~logger()
     statusFile.close();
    
     delete loggerPtr;
+}
+std::string logger::getDirLog()
+{
+    
+    std::string file = "log_file_" ;
+    // This lambda run one time per startup
+    static  std::string time = [this]()
+    {
+         std::string time = this->getCurrentTime();
+        
+        time = time.erase(time.length()-4,4);
+        // Change space in time to '_'
+        time[10] = '_';
+        return time;
+    }();
+    
+    file += time;
+    return file;
+            
 }        
 std::string logger::getCurrentTime()
 {
@@ -57,7 +96,6 @@ std::string logger::getCurrentTime()
     // push milisecond to my storage
     auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
     os << "." << std::setw(3) << std::setfill('0') << milliseconds.count() ;
- 
     return os.str();
 }                          
 logger* logger::getInstance()
@@ -83,7 +121,7 @@ void logger::writeLogIpm(logLevel logLevel_,std::string fileName, int row, std::
 {
     static std::uint64_t serial = 0;
     ++ serial;
-    std::stringstream ostr;
+    std::stringstream ostr {};
     // Store data of one row
     ostr << serial << "," << getCurrentTime() << "," << fileName << "," << row << "," <<message << std::endl;
     // Write log to Log file
@@ -93,12 +131,19 @@ void logger::writeLogIpm(logLevel logLevel_,std::string fileName, int row, std::
         {
             errorFile << ostr.str();
             errorFile.flush();
-            break;
+            exit(1);
         }
         case logLevel::Debug:
         {
+            #if defined(ENABLE_LOG_TERMINAL)
+                std::cerr << message << std::endl;
+            #endif
+
+            #if defined(ENABLE_LOG_FILE)
             debugFile << ostr.str();
             debugFile.flush();
+            #endif
+
             break;
         }
         case logLevel::Status:
@@ -112,3 +157,4 @@ void logger::writeLogIpm(logLevel logLevel_,std::string fileName, int row, std::
  
     return;                  
 }
+
