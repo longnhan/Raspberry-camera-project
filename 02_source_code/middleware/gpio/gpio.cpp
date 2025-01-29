@@ -95,7 +95,7 @@ void GPIO::set_active_val(const int active_value)
     const uint8_t MAX_RETRIES = 10;
     uint8_t count_retries = 0;
     
-    uint8_t ret = 0;
+    int ret = -1;
     //open file for reading value
     std::ifstream check_active_low(fp_active_low);
     //get value for ret
@@ -104,7 +104,7 @@ void GPIO::set_active_val(const int active_value)
     //close file
     check_active_low.close();
     
-    while((ret == 0) && (count_retries < MAX_RETRIES))
+    while((ret != active_value) && (count_retries < MAX_RETRIES))
     {
         //reassign value
         std::cout << "recheck assign active high" << std::endl;
