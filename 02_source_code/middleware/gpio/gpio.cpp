@@ -145,12 +145,13 @@ uint8_t GPIO::read()
     {
         throw std::runtime_error("Unable to open value file");
     }
-    std::string buf;
-    value_file >> buf;
-    value_file.close();
-    std::cout << "Value is: " << buf << std::endl;
-    return static_cast<uint8_t>(std::stoi(buf));
+
+    int value;
+    value_file >> value;
+    // std::cout << "GPIO read value: " << value << std::endl;
+    return static_cast<uint8_t>(value);
 }
+
 
 void GPIO::toggle()
 {
