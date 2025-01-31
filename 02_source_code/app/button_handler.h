@@ -4,14 +4,27 @@
 #include "gpio.h"
 #include <cstdint>
 #include <iostream>
+#include <chrono>
+#include <thread>
 
 constexpr int EN_ACTIVE_HIGH  = GPIO_ACTIVE_H;
 constexpr int EN_ACTIVE_LOW  = GPIO_ACTIVE_L;
 constexpr auto SHUTTER_BUTTON = GPIO_PIN_16;
 
+enum class ButtonState{
+    IDLE,
+    PRESSED,
+    HELD,
+    RELEASED,
+    DOUBLE_PRESSED
+};
+
 class Button : public GPIO {
 private:
-    bool activeHigh;
+    // bool activeHigh;
+    ButtonState state = ButtonState::IDLE;
+    uint8_t lastValue = 1;
+    std::chrono::steady_clock::time_point lastPressTime;
 public:
     Button(const std::string& pin, const std::string& direction, const int active_val);
     ~Button();
@@ -20,6 +33,9 @@ public:
     void toggle();
     void write(bool state);
     void close();
+
+    void update();
+    ButtonState getState();
 };
 
 #endif /* _BUTTON_HANDLER_H_ */

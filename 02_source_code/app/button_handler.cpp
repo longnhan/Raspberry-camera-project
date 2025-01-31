@@ -20,7 +20,7 @@ uint8_t Button::read()
     // }
     // Read the GPIO pin state and adjust for active-high or active-low configuration
     uint8_t state = GPIO::read();
-    return activeHigh ? state : !state;
+    return state;
 }
 
 void Button::toggle() 
@@ -43,6 +43,43 @@ void Button::write(bool state) {
     // }
     // // For testing or simulating, write a state to the GPIO pin
     // GPIO::write(activeHigh ? state : !state);
+}
+
+void Button::update() 
+{
+    uint8_t currentValue = read();  // Read the GPIO pin state
+    auto now = std::chrono::steady_clock::now();
+
+    if (currentValue == 0 && lastValue == 1) 
+    { // Button Pressed
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPressTime).count() < 300) 
+        {
+            state = ButtonState::DOUBLE_PRESSED;
+        } 
+        else 
+        {
+            state = ButtonState::PRESSED;
+        }
+        lastPressTime = now;
+    } 
+    else if (currentValue == 1 && lastValue == 0) 
+    { // Button Released
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPressTime).count() > 1000) 
+        {
+            state = ButtonState::HELD;
+        } 
+        else 
+        {
+            state = ButtonState::RELEASED;
+        }
+    }
+
+    lastValue = currentValue;
+}
+
+ButtonState Button::getState() 
+{
+    return state;
 }
 
 void Button::close() 
