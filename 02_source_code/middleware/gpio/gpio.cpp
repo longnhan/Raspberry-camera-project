@@ -49,6 +49,7 @@ void GPIO::export_gpio(const std::string& pin)
         throw std::runtime_error("Unable to open export file");
     }
     export_file << pin;
+    export_file.close();
     std::cout << "finish export gpio" << std::endl;
 }
 
@@ -60,6 +61,7 @@ void GPIO::unexport_gpio(const std::string& pin)
         throw std::runtime_error("Unable to open unexport file");
     }
     unexport_file << pin;
+    unexport_file.close();
 }
 
 void GPIO::set_direction(const std::string& direction) 
@@ -70,36 +72,57 @@ void GPIO::set_direction(const std::string& direction)
         throw std::runtime_error("Unable to open direction file");
     }
     direction_file << direction;
+    //close file before attempt to read
+    direction_file.close();
+
     std::cout << "finish set_direction" << std::endl;
 }
 
 void GPIO::set_active_val(const int active_value)
 {
     //set HIGH for fp_active_low
-    std::ofstream active_low_file(fp_active_low);
-    if (!active_low_file.is_open()) 
+    std::ofstream set_active_low(fp_active_low);
+    if (!set_active_low.is_open()) 
     {
         throw std::runtime_error("Unable to open direction file");
     }
-    active_low_file << active_value;
+    set_active_low << active_value;
     //close file before attempt to read
-    active_low_file.close();
+    set_active_low.close();
 
 
     //recheck fp_active_low vale
+    const uint8_t MAX_RETRIES = 10;
+    uint8_t count_retries = 0;
+    
+    int ret = -1;
+    //open file for reading value
     std::ifstream check_active_low(fp_active_low);
-    uint8_t ret = 0;
+    //get value for ret
     check_active_low >> ret;
     std::cout << "Active value ret: " << ret << std::endl;
-    while(ret == 0)
-    {
-        std::cout << "recheck assign active high" << std::endl;
-        active_low_file << active_value;
-        usleep(100);
-        std::cout << "recheck active active high status" << std::endl;
-        check_active_low >> ret;
-    }
+    //close file
     check_active_low.close();
+    
+    while((ret != active_value) && (count_retries < MAX_RETRIES))
+    {
+        //reassign value
+        std::cout << "recheck assign active high" << std::endl;
+        std::ofstream set_active_low(fp_active_low);
+        set_active_low << active_value;
+        set_active_low.close();
+
+        //recheck active high value
+        std::cout << "recheck check active high" << std::endl;
+        std::ifstream check_active_low(fp_active_low);
+        check_active_low >> ret;
+        std::cout << "Active value ret: " << ret << std::endl;
+        check_active_low.close();
+
+        usleep(100);
+        
+        count_retries++;
+    }
 
     std::cout << "finish set_active_val" << std::endl;
 }
@@ -112,6 +135,7 @@ void GPIO::write(const std::string& state)
         throw std::runtime_error("Unable to open value file");
     }
     value_file << state;
+    value_file.close();
 }
 
 uint8_t GPIO::read() 
@@ -121,11 +145,13 @@ uint8_t GPIO::read()
     {
         throw std::runtime_error("Unable to open value file");
     }
-    std::string buf;
-    value_file >> buf;
-    std::cout << "Value is: " << buf << std::endl;
-    return static_cast<uint8_t>(std::stoi(buf));
+
+    int value;
+    value_file >> value;
+    // std::cout << "GPIO read value: " << value << std::endl;
+    return static_cast<uint8_t>(value);
 }
+
 
 void GPIO::toggle()
 {

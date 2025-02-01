@@ -1,9 +1,9 @@
 #include "button_handler.h"
 
 Button::Button(const std::string& pin, const std::string& direction, const int active_val)
-    : GPIO(pin, direction, active_val)
+    : GPIO(pin, direction, active_val), state(ButtonState::RELEASED)
 {
-
+    lastValue = read();
 }
 
 Button::~Button() 
@@ -20,7 +20,7 @@ uint8_t Button::read()
     // }
     // Read the GPIO pin state and adjust for active-high or active-low configuration
     uint8_t state = GPIO::read();
-    return activeHigh ? state : !state;
+    return state;
 }
 
 void Button::toggle() 
@@ -43,6 +43,40 @@ void Button::write(bool state) {
     // }
     // // For testing or simulating, write a state to the GPIO pin
     // GPIO::write(activeHigh ? state : !state);
+}
+
+void Button::update() 
+{
+    uint8_t currentValue = read();  // Read GPIO pin state
+    auto now = std::chrono::steady_clock::now();
+
+    if (currentValue == 0 && lastValue == 1) 
+    { 
+        // Button Pressed
+        state = ButtonState::PRESSED;
+        lastPressTime = now;  // Save press time
+    } 
+    else if (currentValue == 0 && lastValue == 0) 
+    { 
+        // Button is still pressed -> Check for hold
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPressTime).count() > 1000) 
+        {
+            state = ButtonState::HELD;
+        }
+    } 
+    else if (currentValue == 1 && lastValue == 0) 
+    { 
+        // Button Released (always reset to RELEASED)
+        state = ButtonState::RELEASED;
+    }
+
+    lastValue = currentValue; // Store last state
+}
+
+
+ButtonState Button::getState() 
+{
+    return state;
 }
 
 void Button::close() 
