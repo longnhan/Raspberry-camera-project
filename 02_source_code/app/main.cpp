@@ -19,12 +19,28 @@ int main()
 
     std::cout << "Application started!" << std::endl;
     
-    while (keep_running)
-    {
+    // Create a separate thread for button handling
+    std::thread button_handler(buttonThread);
 
-    }
+    // Join the thread before exiting
+    button_handler.join();
 
     return 0;
+}
+
+void buttonThread()
+{
+    while (keep_running)
+    {
+        shutter_btn.update();
+        ButtonState state = shutter_btn.getState();
+
+        if (state == ButtonState::PRESSED) std::cout << "Button Pressed\n";
+        if (state == ButtonState::HELD) std::cout << "Button Held\n";
+        if (state == ButtonState::RELEASED) std::cout << "Button Released\n";
+
+        usleep(10000); // Sleep for 10ms to avoid excessive CPU usage
+    }
 }
 
 void signalHandler(int signal)
