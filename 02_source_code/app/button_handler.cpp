@@ -1,9 +1,9 @@
 #include "button_handler.h"
 
 Button::Button(const std::string& pin, const std::string& direction, const int active_val)
-    : GPIO(pin, direction, active_val)
+    : GPIO(pin, direction, active_val), state(ButtonState::RELEASED)
 {
-
+    lastValue = read();
 }
 
 Button::~Button() 
