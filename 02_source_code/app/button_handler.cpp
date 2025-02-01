@@ -47,35 +47,32 @@ void Button::write(bool state) {
 
 void Button::update() 
 {
-    uint8_t currentValue = read();  // Read the GPIO pin state
+    uint8_t currentValue = read();  // Read GPIO pin state
     auto now = std::chrono::steady_clock::now();
 
     if (currentValue == 0 && lastValue == 1) 
-    { // Button Pressed
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPressTime).count() < 300) 
-        {
-            state = ButtonState::DOUBLE_PRESSED;
-        } 
-        else 
-        {
-            state = ButtonState::PRESSED;
-        }
-        lastPressTime = now;
+    { 
+        // Button Pressed
+        state = ButtonState::PRESSED;
+        lastPressTime = now;  // Save press time
     } 
-    else if (currentValue == 1 && lastValue == 0) 
-    { // Button Released
+    else if (currentValue == 0 && lastValue == 0) 
+    { 
+        // Button is still pressed -> Check for hold
         if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPressTime).count() > 1000) 
         {
             state = ButtonState::HELD;
-        } 
-        else 
-        {
-            state = ButtonState::RELEASED;
         }
+    } 
+    else if (currentValue == 1 && lastValue == 0) 
+    { 
+        // Button Released (always reset to RELEASED)
+        state = ButtonState::RELEASED;
     }
 
-    lastValue = currentValue;
+    lastValue = currentValue; // Store last state
 }
+
 
 ButtonState Button::getState() 
 {
