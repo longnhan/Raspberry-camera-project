@@ -1,0 +1,11 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${prefix}/lib/arm-linux-gnueabihf
+includedir=${prefix}/include/arm-linux-gnueabihf
+
+Name: libtiff
+Description:  Tag Image File Format (TIFF) library.
+Version: 4.2.0
+Libs: -L${libdir} -ltiff
+Libs.private: -lwebp -lzstd -llzma -ljbig -ljpeg -ldeflate -lz -lm 
+Cflags: -I${includedir}

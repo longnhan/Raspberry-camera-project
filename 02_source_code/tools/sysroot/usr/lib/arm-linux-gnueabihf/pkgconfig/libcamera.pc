@@ -1,0 +1,10 @@
+prefix=/usr
+includedir=${prefix}/include
+libdir=${prefix}/lib/arm-linux-gnueabihf
+
+Name: libcamera
+Description: Complex Camera Support Library
+Version: 0.0.5
+Requires: libcamera-base
+Libs: -L${libdir} -lcamera
+Cflags: -I${includedir}/libcamera

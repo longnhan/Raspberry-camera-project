@@ -1,0 +1,11 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${prefix}/lib/arm-linux-gnueabihf
+includedir=${prefix}/include
+
+Name: libdc1394
+Description: 1394-based DC Control Library
+Version: 2.2.6
+Libs: -L${libdir} -ldc1394
+Cflags: -I${includedir}
+
