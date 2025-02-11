@@ -25,7 +25,7 @@ link_directories(${CMAKE_SOURCE_DIR}/tools/sysroot/usr/lib/arm-linux-gnueabihf)
 
 
 set(ENV{PKG_CONFIG_PATH} ${CMAKE_SOURCE_DIR}/tools/sysroot/usr/lib/arm-linux-gnueabihf/pkgconfig)
-set(CMAKE_EXE_LINKER_FLAGS "-nostartfiles -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lc -ldl")
+set(CMAKE_EXE_LINKER_FLAGS " -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lc -ldl")
 
 add_definitions(-DENABLE_DWARF=OFF)
 
@@ -56,9 +56,3 @@ target_link_libraries(Rasp_Camera_App PRIVATE
     app
     pthread
 )
-
-
-
-
-
-

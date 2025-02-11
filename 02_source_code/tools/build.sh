@@ -16,13 +16,8 @@ echo "Creating new build directory..."
 mkdir -p "$BUILD_DIR"
 
 export PKG_CONFIG_PATH=${PROJECT_DIR}/tools/sysroot/usr/lib/arm-linux-gnueabihf/pkgconfig:$PKG_CONFIG_PATH
-export SYSROOT=${PROJECT_DIR}/tools/sysroot
-export CC=arm-linux-gnueabihf-gcc
-export CXX=arm-linux-gnueabihf-g++
 export LD=arm-linux-gnueabihf-ld
 export PKG_CONFIG_PATH=$SYSROOT/usr/lib/arm-linux-gnueabihf/pkgconfig
-export CMAKE_SYSROOT=$SYSROOT
-export CMAKE_EXE_LINKER_FLAGS="-Wl,-rpath-link,$SYSROOT/lib/arm-linux-gnueabihf -Wl,-rpath-link,$SYSROOT/usr/lib/arm-linux-gnueabihf"
 
 export LIBRARY_PATH="${PROJECT_DIR}/tools/sysroot/usr/lib:$LIBRARY_PATH"
 export LD_LIBRARY_PATH="${PROJECT_DIR}/tools/sysroot/usr/lib:$LD_LIBRARY_PATH"
