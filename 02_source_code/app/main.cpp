@@ -1,6 +1,9 @@
 #include "main.h"
 
+//init button handler
 Button shutter_btn(SHUTTER_BUTTON, GPIO_INPUT, EN_ACTIVE_HIGH);
+//init camera control
+CameraControl cameraControl;
 
 std::atomic<bool> keep_running(true);
 
@@ -16,6 +19,12 @@ int main()
 
     // Initialize all modules
     initializeModules();
+
+    //Init camera control
+    if (!cameraControl.init()) {
+        return -1;
+    }
+    cameraControl.detectAndPrintCamera();
 
     std::cout << "Application started!" << std::endl;
     

@@ -1,0 +1,14 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=/usr/lib/arm-linux-gnueabihf
+includedir=/usr/include/arm-linux-gnueabihf
+
+Name: libavutil
+Description: FFmpeg utility library
+Version: 56.51.100
+Requires: 
+Requires.private: 
+Conflicts:
+Libs: -L${libdir}  -lavutil 
+Libs.private: -pthread -lva-drm -lva -lva-x11 -lva -lvdpau -lX11 -lm -ldrm -lOpenCL -lva -lXv -lX11 -lXext
+Cflags: -I${includedir}

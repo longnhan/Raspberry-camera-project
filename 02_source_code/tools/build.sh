@@ -5,6 +5,7 @@ echo "User: $USER"
 
 # Define project root and build directory
 PROJECT_DIR=$(pwd)/..
+echo "Project direcotry is: " $PROJECT_DIR
 BUILD_DIR="${PROJECT_DIR}/build"
 
 # Clean previous builds if they exist
@@ -15,16 +16,17 @@ rm -rf "$BUILD_DIR"
 echo "Creating new build directory..."
 mkdir -p "$BUILD_DIR"
 
-export PKG_CONFIG_PATH=${PROJECT_DIR}/tools/sysroot/usr/lib/arm-linux-gnueabihf/pkgconfig:$PKG_CONFIG_PATH
+# Set up environment variables
+# export PKG_CONFIG_PATH=${PROJECT_DIR}/tools/sysroot/usr/lib/arm-linux-gnueabihf/pkgconfig:$PKG_CONFIG_PATH
+export SYSROOT="${PROJECT_DIR}/tools/sysroot"
 export LD=arm-linux-gnueabihf-ld
-export PKG_CONFIG_PATH=$SYSROOT/usr/lib/arm-linux-gnueabihf/pkgconfig
+export CC=arm-linux-gnueabihf-gcc
+export CXX=arm-linux-gnueabihf-g++
+export CXXFLAGS="--sysroot=${SYSROOT}"
+export LDFLAGS="--sysroot=${SYSROOT} -L${SYSROOT}/usr/lib/arm-linux-gnueabihf"
 
-export LIBRARY_PATH="${PROJECT_DIR}/tools/sysroot/usr/lib:$LIBRARY_PATH"
-export LD_LIBRARY_PATH="${PROJECT_DIR}/tools/sysroot/usr/lib:$LD_LIBRARY_PATH"
-
-
-LDFLAGS=-L${PROJECT_DIR}/tools/sysroot/usr/lib/arm-linux-gnueabihf \
-CXXFLAGS=--sysroot=${PROJECT_DIR}/tools/sysroot \
+export LIBRARY_PATH="${SYSROOT}/usr/lib"
+export LD_LIBRARY_PATH="${SYSROOT}/usr/lib"
 
 # Run CMake to configure the project
 echo "Configuring the project using CMake..."
@@ -33,7 +35,7 @@ cmake -DCMAKE_TOOLCHAIN_FILE="${PROJECT_DIR}/toolchain.cmake" ..
 
 # Build the project
 echo "Building the project..."
-make -j$(nproc)
+make -j$(nproc)  VERBOSE=1
 
 # Check if build was successful
 if [ $? -eq 0 ]; then

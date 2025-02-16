@@ -1,58 +1,45 @@
-# Set the minimum version of CMake required
 cmake_minimum_required(VERSION 3.10)
 
-# Set the project name
 project(Rasp_Camera_App VERSION 1.0)
 
-# Enable C++17 support
 set(CMAKE_CXX_STANDARD 17)
 
-# Add flag standard c++17
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+# Ensure correct paths for cross-compilation
+set(ENV{PKG_CONFIG_PATH} "${CMAKE_SOURCE_DIR}/tools/sysroot/usr/lib/arm-linux-gnueabihf/pkgconfig")
+set(ENV{PKG_CONFIG_SYSROOT_DIR} "${CMAKE_SOURCE_DIR}/tools/sysroot")
 
-# Set toolchain for cross-compilation (C++ compiler)
-# set(CMAKE_CXX_COMPILER ${CMAKE_SOURCE_DIR}/tools/cross-pi-gcc-10.2.0-32/bin/arm-linux-gnueabihf-g++)
-
-# Add the directories where headers and libraries are located
-include_directories(
-    ${CMAKE_SOURCE_DIR}/tools/sysroot/usr/include
-    ${CMAKE_SOURCE_DIR}/tools/sysroot/usr/include/libcamera
-
-)
-
-# link_directories(${CMAKE_SOURCE_DIR}/tools/sysroot/usr/lib)
-link_directories(${CMAKE_SOURCE_DIR}/tools/sysroot/usr/lib/arm-linux-gnueabihf)
-
-
-set(ENV{PKG_CONFIG_PATH} ${CMAKE_SOURCE_DIR}/tools/sysroot/usr/lib/arm-linux-gnueabihf/pkgconfig)
-set(CMAKE_EXE_LINKER_FLAGS " -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lc -ldl")
-
-add_definitions(-DENABLE_DWARF=OFF)
-
-# Find the libcamera package or manually link the libraries
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBCAMERA REQUIRED libcamera)
+pkg_check_modules(LIBCAMERA REQUIRED libcamera libcamera-base)
 
-message(STATUS "Found libcamera: ${LIBCAMERA_LIBRARIES}")
+# Debug output
+message(STATUS "Found libcamera libraries: ${LIBCAMERA_LIBRARIES}")
+message(STATUS "Found libcamera include directories: ${LIBCAMERA_INCLUDE_DIRS}")
+message(STATUS "Found libcamera library directories: ${LIBCAMERA_LIBRARY_DIRS}")
 
-# Add subdirectories for the app and middleware modules
+# Use pkg-config include directories instead of hardcoded ones
+include_directories(${LIBCAMERA_INCLUDE_DIRS})
+
+# Use pkg-config library directories
+link_directories(${LIBCAMERA_LIBRARY_DIRS})
+
+# Add subdirectories
 add_subdirectory(app)
 add_subdirectory(middleware)
 
-# Create the executable for the app (main source file is in app/main.cpp)
-add_executable(Rasp_Camera_App 
-    ${CMAKE_SOURCE_DIR}/app/main.cpp
-)
+# Define the executable
+add_executable(Rasp_Camera_App ${CMAKE_SOURCE_DIR}/app/main.cpp)
 
-# Link the app with necessary libraries (camera, gpio, logging, etc.)
-
+# Link libraries properly
 target_link_libraries(Rasp_Camera_App PRIVATE 
-    # camera-base
-    camera        # camera library
-    gpio          # gpio library
-    gui           # gui library
-    logging       # logging library
-    storage       # storage library
+    ${LIBCAMERA_LIBRARIES}  # Ensure libcamera is linked
     app
+    camera
+    gpio
+    gui
+    logging
+    storage
     pthread
 )
+
+# Linker flags
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lc -ldl")

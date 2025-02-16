@@ -1,4 +1,4 @@
-This is libc.info, produced by makeinfo version 6.5 from libc.texinfo.
+This is libc.info, produced by makeinfo version 6.7 from libc.texinfo.
 
 This file documents the GNU C Library.
 
@@ -2108,8 +2108,8 @@ libc.info-12: 3382419
 libc.info-13: 3679625
 libc.info-14: 4205101
 libc.info-15: 4285299
-libc.info-16: 4633585
-libc.info-17: 4902580
+libc.info-16: 4633250
+libc.info-17: 4902245
 
 Tag Table:
 (Indirect)
@@ -2834,30 +2834,30 @@ Node: Structure Measurement3856007
 Node: Library Summary3856817
 Node: Installation4205101
 Node: Configuring and compiling4285299
-Node: Running make install4303863
-Node: Tools for Compilation4308979
-Node: Linux4314063
-Node: Reporting Bugs4316725
-Node: Maintenance4319100
-Node: Source Layout4319571
-Node: Adding Platform-specific4323869
-Node: Symbol handling4326967
-Node: 64-bit time symbol handling4327292
-Node: Porting4331511
-Node: Hierarchy Conventions4339549
-Node: Porting to Unix4344494
-Node: Platform4346598
-Node: PowerPC4346978
-Node: RISC-V4351839
-Node: Contributors4352815
-Node: Free Manuals4369569
-Node: Copying4374526
-Node: Documentation License4402785
-Node: Concept Index4428127
-Node: Type Index4633585
-Node: Function Index4657280
-Node: Variable Index4902580
-Node: File Index5035899
+Node: Running make install4303528
+Node: Tools for Compilation4308644
+Node: Linux4313728
+Node: Reporting Bugs4316390
+Node: Maintenance4318765
+Node: Source Layout4319236
+Node: Adding Platform-specific4323534
+Node: Symbol handling4326632
+Node: 64-bit time symbol handling4326957
+Node: Porting4331176
+Node: Hierarchy Conventions4339214
+Node: Porting to Unix4344159
+Node: Platform4346263
+Node: PowerPC4346643
+Node: RISC-V4351504
+Node: Contributors4352480
+Node: Free Manuals4369234
+Node: Copying4374191
+Node: Documentation License4402450
+Node: Concept Index4427792
+Node: Type Index4633250
+Node: Function Index4656945
+Node: Variable Index4902245
+Node: File Index5035564
 
 End Tag Table
 

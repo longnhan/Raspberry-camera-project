@@ -1,0 +1,14 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=/usr/lib/arm-linux-gnueabihf
+includedir=/usr/include/arm-linux-gnueabihf
+
+Name: libpostproc
+Description: FFmpeg postprocessing library
+Version: 55.7.100
+Requires: 
+Requires.private: libavutil >= 56.51.100
+Conflicts:
+Libs: -L${libdir}  -lpostproc 
+Libs.private: -lm
+Cflags: -I${includedir}

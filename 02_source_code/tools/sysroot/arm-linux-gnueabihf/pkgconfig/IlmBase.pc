@@ -1,0 +1,17 @@
+##
+## SPDX-License-Identifier: BSD-3-Clause
+## Copyright Contributors to the OpenEXR Project.
+##
+
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib/arm-linux-gnueabihf
+includedir=${prefix}/include
+libsuffix=-2_5
+Name: IlmBase
+Description: Base math and exception libraries
+Version: 2.5.4
+Requires:
+Conflicts:
+Libs: -L${libdir} -lImath${libsuffix} -lHalf${libsuffix} -lIex${libsuffix} -lIexMath${libsuffix} -lIlmThread${libsuffix} -pthread
+Cflags: -pthread -I${includedir} -I${includedir}/OpenEXR

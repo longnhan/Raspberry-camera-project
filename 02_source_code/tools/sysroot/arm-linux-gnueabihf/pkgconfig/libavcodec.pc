@@ -1,0 +1,14 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=/usr/lib/arm-linux-gnueabihf
+includedir=/usr/include/arm-linux-gnueabihf
+
+Name: libavcodec
+Description: FFmpeg codec library
+Version: 58.91.100
+Requires: 
+Requires.private: libswresample >= 3.7.100, libavutil >= 56.51.100
+Conflicts:
+Libs: -L${libdir}  -lavcodec 
+Libs.private: -lvpx -lm -lvpx -lm -lvpx -lm -lvpx -lm -lwebpmux -lwebp -lm -llzma -lmmal_core -lmmal_util -lmmal_vc_client -lbcm_host -lvcsm -lvchostif -lvchiq_arm -lvcos -ldav1d -lrsvg-2 -lm -lgio-2.0 -lgdk_pixbuf-2.0 -lgobject-2.0 -lglib-2.0 -lcairo -lzvbi -lm -lpthread -lm -lpng -lz -lsnappy -lstdc++ -lz -laom -lm -lpthread -lcodec2 -lgsm -lmp3lame -lm -lopenjp2 -lopus -lm -lshine -lspeex -ltheoraenc -ltheoradec -logg -ltwolame -lvorbis -lvorbisenc -lwavpack -lwebp -lx264 -lx265 -lxvidcore -ldl -pthread -lva -ldrm -ludev
+Cflags: -I${includedir}

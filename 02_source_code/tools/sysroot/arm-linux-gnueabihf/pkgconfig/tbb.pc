@@ -1,0 +1,11 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib/arm-linux-gnueabihf
+includedir=${prefix}/include
+
+Name: Threading Building Blocks
+Description: Intel's parallelism library for C++
+URL: http://www.threadingbuildingblocks.org/
+Version: 
+Libs: -ltbb -latomic
+Cflags:

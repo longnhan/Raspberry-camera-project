@@ -1,0 +1,14 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=/usr/lib/arm-linux-gnueabihf
+includedir=/usr/include/arm-linux-gnueabihf
+
+Name: libavfilter
+Description: FFmpeg audio/video filtering library
+Version: 7.85.100
+Requires: 
+Requires.private: libswscale >= 5.7.100, libpostproc >= 55.7.100, libavformat >= 58.45.100, libavcodec >= 58.91.100, libswresample >= 3.7.100, libavutil >= 56.51.100
+Conflicts:
+Libs: -L${libdir}  -lavfilter 
+Libs.private: -pthread -lm -lpocketsphinx -lsphinxbase -lsphinxad -lbs2b -llilv-0 -ldl -lsratom-0 -lsord-0 -lserd-0 -lrubberband -lstdc++ -lmysofa -lflite_cmu_time_awb -lflite_cmu_us_awb -lflite_cmu_us_kal -lflite_cmu_us_kal16 -lflite_cmu_us_rms -lflite_cmu_us_slt -lflite_usenglish -lflite_cmulex -lflite -lfribidi -lass -lva -lvidstab -lm -lgomp -lzmq -ldl -lOpenCL -lfontconfig -lfreetype -lfreetype
+Cflags: -I${includedir}
