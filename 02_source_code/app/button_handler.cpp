@@ -82,5 +82,5 @@ ButtonState Button::getState()
 void Button::close() 
 {
     GPIO::close();
-    // std::cout << "Button on pin " << static_cast<int>(getPin()) << " closed.\n";
+    
 }

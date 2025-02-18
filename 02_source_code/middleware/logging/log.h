@@ -29,7 +29,7 @@
 #endif
 
 #define LOG_ERR(...)  (logger::getInstance()->writeLog(logLevel::Error, __FILE__, __LINE__, __VA_ARGS__))
-#define LOG_SST(...)  (logger::getInstance()->writeLog(logLevel::Status, __FILE__, __LINE__, __VA_ARGS__))
+#define LOG_STT(...)  (logger::getInstance()->writeLog(logLevel::Status, __FILE__, __LINE__, __VA_ARGS__))
 /***************************************/
 // User reference
 // Use macro LOG_ERR to write log error
