@@ -3,12 +3,16 @@ set(APP_SOURCES
     button_handler.cpp
     camera_app.cpp
     screen.cpp
-    main.cpp
     button_handler.h
     camera_app.h
     screen.h
-    main.h
 )
 
+# Create a static library for the app module
+add_library(app STATIC ${APP_SOURCES})
+
 # Include directories for the app module
-include_directories(${CMAKE_SOURCE_DIR}/app)
+target_include_directories(app PUBLIC ${CMAKE_SOURCE_DIR}/app)
+
+# Link the app library with the gpio library
+target_link_libraries(app PUBLIC gpio)
