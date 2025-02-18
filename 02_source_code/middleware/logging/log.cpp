@@ -157,4 +157,26 @@ void logger::writeLogIpm(logLevel logLevel_,std::string fileName, int row, std::
  
     return;                  
 }
+void logger::clearLog()
+{
+    // Get path log
+    std::filesystem::path logpath = LOG_DIR ;
+
+    try {
+        // Delete all log if log file exist
+        if (std::filesystem::exists(logpath)) 
+        {
+            std::filesystem::remove_all(logpath);
+            std::cerr << "Delete all log in : " << logpath << std::endl;
+        } 
+        else 
+        {
+            std::cerr << "No log to delete " << std::endl;
+        }
+    } 
+    catch (const std::filesystem::filesystem_error& e) 
+    {
+        std::cerr << "Error deleting file: " << e.what() << std::endl;
+    }
+}
 

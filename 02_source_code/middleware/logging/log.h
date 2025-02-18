@@ -10,6 +10,7 @@
 #include <thread>
 #include <mutex>
 #include <cstdlib>
+#include <filesystem>
 #include <sys/stat.h> // for function mkdir 
 // Fix path log file
 #define LOG_DIR       (std::string(std::getenv("HOME")).append("/log_file"))
@@ -29,17 +30,19 @@
 #endif
 
 #define LOG_ERR(...)  (logger::getInstance()->writeLog(logLevel::Error, __FILE__, __LINE__, __VA_ARGS__))
-#define LOG_SST(...)  (logger::getInstance()->writeLog(logLevel::Status, __FILE__, __LINE__, __VA_ARGS__))
+#define LOG_STT(...)  (logger::getInstance()->writeLog(logLevel::Status, __FILE__, __LINE__, __VA_ARGS__))
+#define LOG_CLR()     (logger::getInstance()->clearLog())
 /***************************************/
 // User reference
 // Use macro LOG_ERR to write log error
 // Use macro LOG_DBG to write log debug
-// Use macro LOG_SST to write log status
+// Use macro LOG_STT to write log status
+// Use macro LOG_CLR to clear all log file
 // Example:
 // int temperature = 45 ;
 // LOG_ERR("Fail to open file");
 // LOG_DBG("This function run very good");
-// LOG_SST("Too hot, temperature is :", temperature, " Celsius!" )
+// LOG_STT("Too hot, temperature is :", temperature, " Celsius!" )
 /***************************************/
 enum logLevel
 {  
@@ -98,6 +101,7 @@ private:
         writeLogIpm(logLevel_,fileName,row,os.str());
     }   
     static logger* getInstance();
+    void clearLog();
  
 };
  
