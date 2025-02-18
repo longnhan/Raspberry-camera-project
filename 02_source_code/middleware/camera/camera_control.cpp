@@ -9,37 +9,62 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <fstream>
-#include <sys/mman.h>   // For mmap, munmap, PROT_READ, MAP_PRIVATE, MAP_FAILED
+#include <sys/mman.h>
 #include <iostream>
 
 CameraControl::CameraControl()
-    : iso_(100), shutterSpeed_(10000), exposureMode_(0) {}
+    : iso_(100), shutterSpeed_(10000), exposureMode_(0)
+{
+    if (!initialize())
+    {
+        throw std::runtime_error("Camera initialization failed");
+    }
+}
 
 CameraControl::~CameraControl() {
     release();
 }
 
-bool CameraControl::initialize() {
+bool CameraControl::initialize()
+{
     cameraManager_ = std::make_unique<libcamera::CameraManager>();
-    if (cameraManager_->start()) {
+    if (cameraManager_->start())
+    {
         std::cerr << "Failed to start camera manager" << std::endl;
         return false;
     }
-    if (cameraManager_->cameras().empty()) {
+
+    if (cameraManager_->cameras().empty())
+    {
         std::cerr << "No cameras found" << std::endl;
         return false;
     }
+
+    // Print detected cameras
+    std::cout << "Detected cameras:" << std::endl;
+    for (const auto &camera : cameraManager_->cameras())
+    {
+        std::cout << " - " << camera->id() << std::endl;
+    }
+
     camera_ = cameraManager_->cameras().front();
-    if (!camera_) {
+    if (!camera_)
+    {
         std::cerr << "Failed to get camera" << std::endl;
         return false;
     }
-    if (camera_->acquire()) {
+
+    std::cout << "Using camera: " << camera_->id() << std::endl;
+
+    if (camera_->acquire())
+    {
         std::cerr << "Failed to acquire camera" << std::endl;
         return false;
     }
+
     return true;
 }
+
 
 void CameraControl::setISO(int iso) {
     iso_ = iso;

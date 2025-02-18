@@ -34,9 +34,9 @@ private:
     std::shared_ptr<libcamera::Camera> camera_;
 
     // Camera settings buffer
-    int iso_;           // ISO sensitivity
-    int shutterSpeed_;  // Shutter speed in microseconds
-    int exposureMode_;  // 0 = Auto, 1 = Manual
+    int iso_;
+    int shutterSpeed_;
+    int exposureMode_;
 };
 
 #endif // CAMERA_CONTROL_H
