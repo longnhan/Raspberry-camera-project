@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdexcept>
-
+#include <log.h>
 
 /* Define GPIO state */
 constexpr auto GPIO_SET = "1";
