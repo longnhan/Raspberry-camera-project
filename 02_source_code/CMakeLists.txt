@@ -26,14 +26,17 @@ add_executable(Rasp_Camera_App
     ${CMAKE_SOURCE_DIR}/app/main.cpp
 )
 
-# Link the app with necessary libraries, including libcamera
+# Link the app with necessary libraries
 target_link_libraries(Rasp_Camera_App
-    ${LIBCAMERA_LIBRARIES}  # Link libcamera
-    camera        # camera library
-    gpio          # gpio library
-    gui           # gui library
-    logging       # logging library
-    storage       # storage library
+    camera_control          # Your middleware library
+    gpio                    # gpio library
+    gui                     # gui library
+    logging                 # logging library
+    storage                 # storage library
     app
     pthread
+    dl
+    m
+    rt
+    ${LIBCAMERA_LIBRARIES}  # This expands to: -lcamera -lcamera-base
 )
