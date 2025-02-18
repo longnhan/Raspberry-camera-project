@@ -6,9 +6,16 @@ project(Rasp_Camera_App VERSION 1.0)
 
 # Enable C++17 support
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Add flag standard c++17
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+# Use pkg-config to find libcamera
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBCAMERA REQUIRED libcamera)
+
+# Include libcamera directories
+include_directories(${LIBCAMERA_INCLUDE_DIRS})
+link_directories(${LIBCAMERA_LIBRARY_DIRS})
+add_definitions(${LIBCAMERA_CFLAGS_OTHER})
 
 # Add subdirectories for the app and middleware modules
 add_subdirectory(app)
@@ -19,8 +26,9 @@ add_executable(Rasp_Camera_App
     ${CMAKE_SOURCE_DIR}/app/main.cpp
 )
 
-# Link the app with necessary libraries (camera, gpio, logging, etc.)
+# Link the app with necessary libraries, including libcamera
 target_link_libraries(Rasp_Camera_App
+    ${LIBCAMERA_LIBRARIES}  # Link libcamera
     camera        # camera library
     gpio          # gpio library
     gui           # gui library
