@@ -35,8 +35,8 @@ target_link_libraries(Rasp_Camera_App
     storage                 # storage library
     app
     pthread
-    dl
-    m
-    rt
+    # dl
+    # m
+    # rt
     ${LIBCAMERA_LIBRARIES}  # This expands to: -lcamera -lcamera-base
 )
