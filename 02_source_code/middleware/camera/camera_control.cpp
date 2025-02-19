@@ -172,11 +172,10 @@ bool CameraControl::captureImage() {
     return true;
 }
 
-void CameraControl::release() {
-    if (camera_) {
-        camera_->release();
-    }
-    if (cameraManager_) {
-        cameraManager_->stop();
-    }
+void CameraControl::release()
+{
+    camera_->stop();
+    camera_->release();
+    camera_.reset();
+    cameraManager_->stop();
 }
