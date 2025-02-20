@@ -8,7 +8,7 @@ set(CAMERA_SOURCES
 )
 
 # Create a static library for the Camera module
-add_library(camera STATIC ${CAMERA_SOURCES})
+add_library(camera_control STATIC ${CAMERA_SOURCES})
 
 # Include directories for the Camera module
-target_include_directories(camera PUBLIC ${CMAKE_SOURCE_DIR}/middleware/camera)
+target_include_directories(camera_control PUBLIC ${CMAKE_SOURCE_DIR}/middleware/camera)

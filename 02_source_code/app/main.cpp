@@ -4,6 +4,8 @@ Button shutter_btn(SHUTTER_BUTTON, GPIO_INPUT, EN_ACTIVE_HIGH);
 
 std::atomic<bool> keep_running(true);
 
+CameraControl sonyGlobalShutterCam;
+
 void initializeModules() 
 {
 
@@ -22,14 +24,20 @@ int main()
     // Create a separate thread for button handling
     std::thread button_handler(buttonThread);
 
+    // Create a separate thread for button handling
+    std::thread camera_handler(cameraThread);
+
     // Join the thread before exiting
     button_handler.join();
+    camera_handler.join();
 
     return 0;
 }
 
 void buttonThread()
 {
+    std::cout << ":::::::::::: <--- BUTTON HANDLER START ---> ::::::::::::\n";
+
     while (keep_running)
     {
         shutter_btn.update();
@@ -39,6 +47,16 @@ void buttonThread()
         if (state == ButtonState::HELD) std::cout << "Button Held\n";
         if (state == ButtonState::RELEASED) std::cout << "Button Released\n";
 
+        usleep(10000); // Sleep for 10ms to avoid excessive CPU usage
+    }
+}
+
+void cameraThread()
+{
+    std::cout << ":::::::::::: <--- CAMERA OPERATING START ---> ::::::::::::\n";
+
+    while (keep_running)
+    {
         usleep(10000); // Sleep for 10ms to avoid excessive CPU usage
     }
 }

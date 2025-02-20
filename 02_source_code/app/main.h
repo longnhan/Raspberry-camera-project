@@ -13,5 +13,6 @@
 
 void signalHandler(int signal);
 void buttonThread();
+void cameraThread();
 
 #endif /*_MAIN_H_*/
