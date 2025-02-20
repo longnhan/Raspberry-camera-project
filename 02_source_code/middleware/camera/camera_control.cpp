@@ -129,18 +129,32 @@ bool CameraControl::captureImage() {
         return false;
     }
     // Attach the first buffer for capture.
-    request->addBuffer(stream, buffers[0].get());
+    if (request->addBuffer(stream, buffers[0].get()) < 0) {
+        std::cerr << "Failed to add buffer to request" << std::endl;
+        return false;
+    }
 
     // Prepare and assign controls to the request.
     request->controls() = prepareControls();
 
-    if (camera_->queueRequest(request.get()) < 0) {
-        std::cerr << "Failed to queue request" << std::endl;
+    // **Start the camera first** so that it's in the Running state.
+    if (camera_->start() < 0) {
+        std::cerr << "Failed to start camera" << std::endl;
         return false;
     }
 
-    // Start capture and then stop (to wait for the capture to complete).
-    camera_->start();
+    // Now queue the request.
+    if (camera_->queueRequest(request.get()) < 0) {
+        std::cerr << "Failed to queue request" << std::endl;
+        camera_->stop();
+        return false;
+    }
+
+    // Wait for the request to complete.
+    // (In a real application, you’d normally use an event loop or callback)
+    sleep(1);  // Wait 1 second to allow the capture to complete.
+
+    // Stop the camera.
     camera_->stop();
 
     // Save image data to a file.
@@ -152,7 +166,7 @@ bool CameraControl::captureImage() {
 
     // Iterate over each buffer.
     for (const auto &buffer : buffers) {
-        // Use get() to obtain the file descriptor.
+        // Obtain the file descriptor.
         int fd = buffer->planes()[0].fd.get();
         size_t length = buffer->planes()[0].length;
 
