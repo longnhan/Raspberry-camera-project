@@ -6,6 +6,7 @@
 #include <libcamera/camera_manager.h>
 #include <libcamera/control_ids.h>
 #include <iostream>
+#include <log.h>
 
 class CameraControl {
 public:

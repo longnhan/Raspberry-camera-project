@@ -41,10 +41,10 @@ bool CameraControl::initialize()
     }
 
     // Print detected cameras
-    std::cout << "Detected cameras:" << std::endl;
+    LOG_STT("Detected cameras:");
     for (const auto &camera : cameraManager_->cameras())
     {
-        std::cout << " - " << camera->id() << std::endl;
+        LOG_STT(" - ",camera->id());
     }
 
     camera_ = cameraManager_->cameras().front();
@@ -54,7 +54,7 @@ bool CameraControl::initialize()
         return false;
     }
 
-    std::cout << "Using camera: " << camera_->id() << std::endl;
+    LOG_STT("Using camera: ", camera_->id());
 
     if (camera_->acquire())
     {
@@ -182,7 +182,7 @@ bool CameraControl::captureImage() {
     }
 
     outFile.close();
-    std::cout << "Image captured and saved as 'captured_image.raw'" << std::endl;
+    LOG_STT("Image captured and saved as 'captured_image.raw'");
     return true;
 }
 

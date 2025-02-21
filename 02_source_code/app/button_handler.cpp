@@ -79,14 +79,11 @@ void Button::updateShotCounter()
 
     if(last_state == ButtonState::RELEASED)
     {
-        std::cout << "Button Released\n";
         updateButtonState();
         new_state = state;
         if(new_state == ButtonState::PRESSED)
         {
-            std::cout << "Button Pressed\n";
             camera_shutter_count++;
-            std::cout << "shutter counting: " << camera_shutter_count <<"\n";
             last_state = ButtonState::IDLE;
         }
     }

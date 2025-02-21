@@ -12,3 +12,6 @@ add_library(camera_control STATIC ${CAMERA_SOURCES})
 
 # Include directories for the Camera module
 target_include_directories(camera_control PUBLIC ${CMAKE_SOURCE_DIR}/middleware/camera)
+
+# Link the app library with the gpio library
+target_link_libraries(camera_control PUBLIC logging)
