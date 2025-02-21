@@ -34,12 +34,12 @@
 // User reference
 // Use macro LOG_ERR to write log error
 // Use macro LOG_DBG to write log debug
-// Use macro LOG_SST to write log status
+// Use macro LOG_STT to write log status
 // Example:
 // int temperature = 45 ;
 // LOG_ERR("Fail to open file");
 // LOG_DBG("This function run very good");
-// LOG_SST("Too hot, temperature is :", temperature, " Celsius!" )
+// LOG_STT("Too hot, temperature is :", temperature, " Celsius!" )
 /***************************************/
 enum logLevel
 {  
