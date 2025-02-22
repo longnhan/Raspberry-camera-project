@@ -11,6 +11,8 @@ void initializeModules()
 
 int main() 
 {
+    // Save build time , __DATE__ and __TIME__ macro will be process in preprocesser
+    std::cerr << "Time build : " << __DATE__ << " " << __TIME__ << std::endl; 
     // Set up the signal handler
     std::signal(SIGINT, signalHandler);
 
@@ -39,7 +41,7 @@ void buttonThread()
         if (state == ButtonState::HELD) std::cout << "Button Held\n";
         if (state == ButtonState::RELEASED) std::cout << "Button Released\n";
 
-        usleep(10000); // Sleep for 10ms to avoid excessive CPU usage
+        DELAY_MS(10); // Sleep for 10ms to avoid excessive CPU usage
     }
 }
 
