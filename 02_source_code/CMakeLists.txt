@@ -26,6 +26,7 @@ target_link_libraries(Rasp_Camera_App
     gui           # gui library
     logging       # logging library
     storage       # storage library
+    utils         # utils library
     app
     pthread
 )

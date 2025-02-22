@@ -10,6 +10,7 @@
 #include "button_handler.h"
 #include "gui_display.h"
 #include "log.h"
+#include "delay.h"
 
 void signalHandler(int signal);
 void buttonThread();
