@@ -8,8 +8,6 @@ CameraControl sonyGlobalShutterCam;
 
 // Shared data structure for shooting mechanism
 std::queue<int> shutterQueue;
-std::mutex shutterLockingMutex;
-std::condition_variable shutter_cv;
 
 void initializeModules() 
 {
@@ -29,10 +27,10 @@ int main()
     // Create a separate thread for button handling
     std::thread button_handler(buttonThread);
 
-    // Create a separate thread for button handling
+    // Create a separate thread for camera handling
     std::thread camera_handler(cameraThread);
 
-    // Join the thread before exiting
+    // Join the threads before exiting
     button_handler.join();
     camera_handler.join();
 
@@ -50,19 +48,11 @@ void buttonThread()
         shutter_btn.updateShotCounter();
         ButtonState state = shutter_btn.getState();
 
-        // calculate a single press
-        if((shutter_btn.getShotCount() - currnt_shot) == 1)
+        // Detect single press
+        if ((shutter_btn.getShotCount() - currnt_shot) == 1)
         {
             currnt_shot = shutter_btn.getShotCount();
-            
-            // mutex locking
-            std::lock_guard<std::mutex> lock(shutterLockingMutex);
-            //push current shot value into queue
             shutterQueue.push(currnt_shot);
-            
-            // trigger camera take image
-            // trigger shutter_cv.wait
-            shutter_cv.notify_one();
         }
     }
 }
@@ -73,21 +63,12 @@ void cameraThread()
 
     while (keep_running)
     {
-		// init and immidiately lock mutex
-        std::unique_lock<std::mutex> shutterMutex(shutterLockingMutex);
-        shutter_cv.wait(shutterMutex, [] { return !shutterQueue.empty(); });
-
-        while (!shutterQueue.empty())
+        if (!shutterQueue.empty())
         {
             int shotCount = shutterQueue.front();
             shutterQueue.pop();
-            
-			// Unlock before capturing to avoid blocking buttonThread
-			shutterMutex.unlock();
-            
-			sonyGlobalShutterCam.captureImage();
 
-			// No need to re-lock; loop will reacquire it if needed
+            sonyGlobalShutterCam.captureImage();
         }
     }
 }
@@ -98,8 +79,5 @@ void signalHandler(int signal)
     {
         std::cout << "\nCtrl+C detected. Cleaning up and exiting..." << std::endl;
         keep_running = false;
-
-        // Wake up cameraThread() to allow exit
-        shutter_cv.notify_one();
     }
 }
