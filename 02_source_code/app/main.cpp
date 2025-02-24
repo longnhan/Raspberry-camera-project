@@ -22,7 +22,7 @@ int main()
     // Initialize all modules
     initializeModules();
 
-    std::cout << "Application started!" << std::endl;
+    LOG_STT("Application started!");
     
     // Create a separate thread for button handling
     std::thread button_handler(buttonThread);
@@ -39,9 +39,9 @@ int main()
 
 void buttonThread()
 {
-    std::cout << ":::::::::::: <--- BUTTON HANDLER START ---> ::::::::::::\n";
+    LOG_STT(":::::::::::: <--- BUTTON HANDLER START ---> ::::::::::::");
     
-    static std::atomic<uint32_t> currnt_shot = 0;
+    static uint32_t currnt_shot = 0;
     while (keep_running)
     {
         shutter_btn.updateButtonState();
@@ -52,23 +52,33 @@ void buttonThread()
         if ((shutter_btn.getShotCount() - currnt_shot) == 1)
         {
             currnt_shot = shutter_btn.getShotCount();
+            LOG_DBG("[LOG_DEBUG] get currnt shot: ", currnt_shot);
             shutterQueue.push(currnt_shot);
+            LOG_DBG("[LOG_DEBUG] finish push to queue: ", shutterQueue.size());
         }
     }
 }
 
 void cameraThread()
 {
-    std::cout << ":::::::::::: <--- CAMERA OPERATING START ---> ::::::::::::\n";
+    LOG_STT(":::::::::::: <--- CAMERA OPERATING START ---> ::::::::::::");
 
     while (keep_running)
     {
         if (!shutterQueue.empty())
         {
+            LOG_DBG("[LOG_DEBUG] camera check queue not empty");
             int shotCount = shutterQueue.front();
+            
+            LOG_DBG("[LOG_DEBUG] pop queue");
             shutterQueue.pop();
-
+            LOG_DBG("[LOG_DEBUG] finish pop to queue: ", shutterQueue.size());
+            
+            LOG_DBG("[LOG_DEBUG] start capture image");
             sonyGlobalShutterCam.captureImage();
+            LOG_DBG("[LOG_DEBUG] finish capture image");
+            
+            LOG_DBG("[LOG_DEBUG] waiting for the next pressing");
         }
     }
 }
@@ -77,7 +87,7 @@ void signalHandler(int signal)
 {
     if (signal == SIGINT)
     {
-        std::cout << "\nCtrl+C detected. Cleaning up and exiting..." << std::endl;
+        LOG_STT("Ctrl+C detected. Cleaning up and exiting...");
         keep_running = false;
     }
 }
