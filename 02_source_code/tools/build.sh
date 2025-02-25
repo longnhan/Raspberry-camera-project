@@ -13,11 +13,17 @@ read -p "Enter choice (1 or 2): " BUILD_OPTION
 PROJECT_DIR=$(pwd)/..
 BUILD_DIR="${PROJECT_DIR}/build"
 
-# Clean previous builds if they exist
-echo "Cleaning previous build..."
-rm -rf "$BUILD_DIR"
+# Ask the user whether to clean the previous build
+read -p "Do you want to perform a clean build? (y/n): " CLEAN_BUILD
 
-# Create a new build directory
+if [ "$CLEAN_BUILD" == "y" ]; then
+    echo "Cleaning previous build..."
+    rm -rf "$BUILD_DIR"
+else
+    echo "Keeping previous build..."
+fi
+
+# Create a new build directory if it doesn't exist
 echo "Creating new build directory..."
 mkdir -p "$BUILD_DIR"
 
