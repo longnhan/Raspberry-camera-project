@@ -12,8 +12,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBCAMERA REQUIRED libcamera)
 
-# Include libcamera directories
-include_directories(${LIBCAMERA_INCLUDE_DIRS})
+# Find OpenCV
+find_package(OpenCV REQUIRED)
+
+# Include directories
+include_directories(${LIBCAMERA_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 link_directories(${LIBCAMERA_LIBRARY_DIRS})
 add_definitions(${LIBCAMERA_CFLAGS_OTHER})
 
@@ -29,14 +32,12 @@ add_executable(Rasp_Camera_App
 # Link the app with necessary libraries
 target_link_libraries(Rasp_Camera_App
     camera_control          # Your middleware library
-    gpio                    # gpio library
-    gui                     # gui library
-    logging                 # logging library
-    storage                 # storage library
+    gpio                    # GPIO library
+    gui                     # GUI library
+    logging                 # Logging library
+    storage                 # Storage library
     app
     pthread
-    # dl
-    # m
-    # rt
-    ${LIBCAMERA_LIBRARIES}  # This expands to: -lcamera -lcamera-base
+    ${LIBCAMERA_LIBRARIES}  # Expands to: -lcamera -lcamera-base
+    ${OpenCV_LIBS}          # Link OpenCV libraries
 )
