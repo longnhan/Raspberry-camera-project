@@ -24,7 +24,9 @@ private:
     // bool activeHigh;
     ButtonState state = ButtonState::IDLE;
     uint8_t lastValue = 1;
+    uint32_t camera_shutter_count = 0;
     std::chrono::steady_clock::time_point lastPressTime;
+
 public:
     Button(const std::string& pin, const std::string& direction, const int active_val);
     ~Button();
@@ -34,8 +36,10 @@ public:
     void write(bool state);
     void close();
 
-    void update();
+    void updateButtonState();
+    void updateShotCounter();
     ButtonState getState();
+    uint32_t getShotCount();
 };
 
 #endif /* _BUTTON_HANDLER_H_ */

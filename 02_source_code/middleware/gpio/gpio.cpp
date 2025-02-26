@@ -27,18 +27,19 @@ GPIO::~GPIO()
 void GPIO::set_gpio_path(const std::string& pin) 
 {
     fp_direction = std::string(GPIO_PATH) + pin + "/direction";
-    LOG_DBG("Direction path: ", fp_direction);
+
+    LOG_DBG("[LOG_DEBUG] Direction path: ", fp_direction);
 
     fp_value = std::string(GPIO_PATH) + pin + "/value";
-    LOG_DBG("Value path: ", fp_value);
+    LOG_DBG("[LOG_DEBUG] Value path: ", fp_value);
 
     fp_edge = std::string(GPIO_PATH) + pin + "/edge";
-    LOG_DBG("Edge path: " , fp_edge);
+    LOG_DBG("[LOG_DEBUG] Edge path: " , fp_edge);
 
     fp_active_low = std::string(GPIO_PATH) + pin + "/active_low";
-    LOG_DBG("Active_low path: " , fp_active_low );
+    LOG_DBG("[LOG_DEBUG] Active_low path: " , fp_active_low );
 
-    LOG_DBG("finish set_gpio_path");
+    LOG_DBG("[LOG_DEBUG] finish set_gpio_path");
 }
 
 void GPIO::export_gpio(const std::string& pin) 
@@ -50,7 +51,7 @@ void GPIO::export_gpio(const std::string& pin)
     }
     export_file << pin;
     export_file.close();
-    LOG_DBG("finish export gpio");
+    LOG_DBG("[LOG_DEBUG] finish export gpio");
 
 }
 
@@ -77,7 +78,7 @@ void GPIO::set_direction(const std::string& direction)
     //close file before attempt to read
     direction_file.close();
 
-    LOG_DBG("finish set_direction");
+    LOG_DBG("[LOG_DEBUG] finish set_direction");
 }
 
 void GPIO::set_active_val(const int active_value)
@@ -109,14 +110,14 @@ void GPIO::set_active_val(const int active_value)
     while((ret != active_value) && (count_retries < MAX_RETRIES))
     {
         //reassign value
-        LOG_DBG("recheck assign active high");
+        LOG_DBG("[LOG_DEBUG] recheck assign active high");
 
         std::ofstream set_active_low(fp_active_low);
         set_active_low << active_value;
         set_active_low.close();
 
         //recheck active high value
-        LOG_DBG("recheck check active high");
+        LOG_DBG("[LOG_DEBUG] recheck check active high");
         std::ifstream check_active_low(fp_active_low);
         check_active_low >> ret;
         LOG_STT("Active value ret: " ,ret);

@@ -20,32 +20,15 @@ uint8_t Button::read()
     // }
     // Read the GPIO pin state and adjust for active-high or active-low configuration
     uint8_t state = GPIO::read();
+
     return state;
 }
 
-void Button::toggle() 
-{
-    // Ensure the button is configured as output before toggling
-    // if (this->getDirection() != GPIO::OUTPUT) {
-    //     std::cerr << "Error: Attempt to toggle a non-output button\n";
-    //     return;
-    // }
-    // // Buttons don't typically toggle, but we can simulate for testing purposes
-    // uint8_t currentState = read();
-    // write(!currentState);
-}
+void Button::toggle() {}
 
-void Button::write(bool state) {
-    // Ensure the button is configured as output before writing
-    // if (this->getDirection() != GPIO::OUTPUT) {
-    //     std::cerr << "Error: Attempt to write to a non-output button\n";
-    //     return;
-    // }
-    // // For testing or simulating, write a state to the GPIO pin
-    // GPIO::write(activeHigh ? state : !state);
-}
+void Button::write(bool state) {}
 
-void Button::update() 
+void Button::updateButtonState() 
 {
     uint8_t currentValue = read();  // Read GPIO pin state
     auto now = std::chrono::steady_clock::now();
@@ -73,6 +56,10 @@ void Button::update()
     lastValue = currentValue; // Store last state
 }
 
+uint32_t Button::getShotCount()
+{
+    return camera_shutter_count;
+}
 
 ButtonState Button::getState() 
 {
@@ -83,4 +70,25 @@ void Button::close()
 {
     GPIO::close();
     
+}
+
+void Button::updateShotCounter()
+{
+    static ButtonState last_state = ButtonState::IDLE;
+    ButtonState new_state;
+
+    if(last_state == ButtonState::RELEASED)
+    {
+        updateButtonState();
+        new_state = state;
+        if(new_state == ButtonState::PRESSED)
+        {
+            camera_shutter_count++;
+            last_state = ButtonState::IDLE;
+        }
+    }
+    else
+    {
+        last_state = state;
+    }
 }
