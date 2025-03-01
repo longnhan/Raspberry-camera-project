@@ -12,7 +12,7 @@
 #include <opencv2/opencv.hpp>
 
 CameraControl::CameraControl()
-    : iso_(6267), shutterSpeed_(500000), exposureMode_(1)
+    : iso_(800), shutterSpeed_(500000), exposureMode_(1)
 {
     if (!initialize())
     {
@@ -133,16 +133,23 @@ bool CameraControl::captureImage() {
         return false;
     }
 
-    size_t yPlaneSize = stride * height;
-    size_t bufferSize = buffers[0]->planes()[0].length;
-    LOG_DBG("[LOG_INFO] Buffer size before capture - Y-plane Expected: ", yPlaneSize, " Allocated: ", bufferSize);
-    if (bufferSize < yPlaneSize) {
-        std::cerr << "Buffer too small for Y-plane! Expected: " << yPlaneSize << ", Got: " << bufferSize << std::endl;
-        LOG_DBG("[LOG_ERROR] Buffer too small for Y-plane! Expected: ", yPlaneSize, " Got: ", bufferSize);
+    const auto &buffer = buffers[0];
+    size_t yPlaneSize = height * stride;
+    size_t uvPlaneSize = (height / 2) * stride;
+    size_t totalSize = yPlaneSize + uvPlaneSize;
+
+    size_t bufferTotalSize = 0;
+    for (const auto &plane : buffer->planes()) {
+        bufferTotalSize += plane.length;
+    }
+    LOG_DBG("[LOG_INFO] Buffer size before capture - Expected for NV12: ", totalSize, " Allocated: ", bufferTotalSize);
+    if (bufferTotalSize < totalSize) {
+        std::cerr << "Buffer too small for NV12 format! Expected: " << totalSize << ", Got: " << bufferTotalSize << std::endl;
+        LOG_DBG("[LOG_ERROR] Buffer too small for NV12 format! Expected: ", totalSize, " Got: ", bufferTotalSize);
         return false;
     }
 
-    if (request->addBuffer(stream, buffers[0].get()) < 0) {
+    if (request->addBuffer(stream, buffer.get()) < 0) {
         std::cerr << "Failed to add buffer to request" << std::endl;
         LOG_DBG("[LOG_ERROR] Failed to add buffer to request");
         return false;
@@ -167,15 +174,14 @@ bool CameraControl::captureImage() {
     }
     LOG_DBG("[LOG_INFO] Request queued");
 
-    sleep(5); // Wait 5s for 1/2s exposure
+    sleep(3); // Wait 5s for 1/2s exposure
     LOG_DBG("[LOG_INFO] Waiting 5 seconds for capture to complete");
 
     camera_->stop();
     LOG_DBG("[LOG_INFO] Camera stopped");
 
-    const auto &buffer = buffers[0];
     int fd = buffer->planes()[0].fd.get();
-    size_t length = buffer->planes()[0].length;
+    size_t length = bufferTotalSize; // Use the total size of all planes
     LOG_DBG("[LOG_INFO] Buffer details - FD: ", fd, " Length: ", length);
 
     void *mappedMemory = mmap(nullptr, length, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -186,20 +192,20 @@ bool CameraControl::captureImage() {
     }
     LOG_DBG("[LOG_INFO] Memory mapped successfully");
 
-    // Save raw Y-plane (optional, for debugging)
+    // Save raw NV12 buffer for debugging (optional)
     std::ofstream outFile("captured_image.raw", std::ios::binary);
     if (outFile) {
-        outFile.write(static_cast<const char *>(mappedMemory), length);
+        outFile.write(static_cast<const char*>(mappedMemory), length);
         outFile.close();
-        LOG_DBG("[LOG_INFO] Raw NV12 Y-plane saved as 'captured_image.raw'");
+        LOG_DBG("[LOG_INFO] Raw NV12 buffer saved as 'captured_image.raw'");
     } else {
-        LOG_DBG("[LOG_ERROR] Failed to save raw Y-plane");
+        LOG_DBG("[LOG_ERROR] Failed to save raw NV12 buffer");
         munmap(mappedMemory, length);
         return false;
     }
 
-    // Check raw values
-    const uint8_t *rawData = static_cast<const uint8_t *>(mappedMemory);
+    // Check raw values for Y-plane (optional debugging)
+    const uint8_t *rawData = static_cast<const uint8_t*>(mappedMemory);
     uint8_t minVal = rawData[0];
     uint8_t maxVal = rawData[0];
     for (size_t i = 1; i < yPlaneSize && i < length; ++i) {
@@ -208,10 +214,12 @@ bool CameraControl::captureImage() {
     }
     LOG_DBG("[LOG_INFO] Raw NV12 Y-plane - Min value: ", static_cast<int>(minVal), " Max value: ", static_cast<int>(maxVal));
 
-    // Convert to grayscale JPEG
-    cv::Mat yImage(height, width, CV_8UC1, mappedMemory, stride);
+    // Convert to color JPEG
+    int totalRows = height + height / 2;
+    cv::Mat nv12Mat(totalRows, width, CV_8UC1, mappedMemory, stride);
     cv::Mat bgrImage;
-    cv::cvtColor(yImage, bgrImage, cv::COLOR_GRAY2BGR);
+    cv::cvtColor(nv12Mat, bgrImage, cv::COLOR_YUV2BGR_NV12);
+
     std::vector<int> params;
     params.push_back(cv::IMWRITE_JPEG_QUALITY);
     params.push_back(95);
@@ -221,7 +229,7 @@ bool CameraControl::captureImage() {
         munmap(mappedMemory, length);
         return false;
     }
-    LOG_DBG("[LOG_INFO] Grayscale JPEG saved as 'captured_image.jpg'");
+    LOG_DBG("[LOG_INFO] Color JPEG saved as 'captured_image.jpg'");
 
     munmap(mappedMemory, length);
     LOG_DBG("[LOG_INFO] Memory unmapped");
