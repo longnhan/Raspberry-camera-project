@@ -90,14 +90,14 @@ float Settings::getValueAperture() const
     return aperture_ / 10.0f;
 }
 
-float Settings::getValueShutterSpeed() const
+int Settings::getValueShutterSpeed() const
 {
-    return 1.0f / shutterSpeed_;
+    return 1000000 / shutterSpeed_;
 }
 
 int Settings::getValueISO() const
 {
-    return iso_;
+    return static_cast<int>(iso_);
 }
 
 float Settings::getValueFlashPower() const
@@ -105,6 +105,45 @@ float Settings::getValueFlashPower() const
     return 1.0f / flashPower_;
 }
 
+void Settings::printSettings() const
+{
+    switch(exposureMode_)
+    {
+        case ExposureMode::Disable:
+        {
+            LOG_DBG("Current Exposure mode:   Disable");
+            break;
+        }
+        case ExposureMode::Auto:
+        {
+            LOG_DBG("Current Exposure mode:   Auto");
+            break;
+        } 
+        case ExposureMode::Manual:
+        {
+            LOG_DBG("Current Exposure mode:   Manual");
+            break;
+        } 
+        case ExposureMode::Night:
+        {
+            LOG_DBG("Current Exposure mode:   Night");
+            break;
+        }  
+        case ExposureMode::Backlight:
+        {
+            LOG_DBG("Current Exposure mode:   Backlight");
+            break;
+        }                
+    }
+
+    LOG_DBG("Current Aperture:        F",(static_cast<int>(aperture_))/10.0f);
+
+    LOG_DBG("Current Shutter Speed:   1/",shutterSpeed_);
+
+    LOG_DBG("Current ISO:             ",iso_);
+
+    LOG_DBG("Current Flash power:     1/",flashPower_);
+}
 
 Settings settings_(Manual, F5_6, SS1_2, ISO_800, FP1_2);
 

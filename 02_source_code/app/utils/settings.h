@@ -4,7 +4,7 @@
 #include <iostream>
 #include <shared_mutex>
 #include <thread>
-
+#include "log.h"
 class Settings;
 // share settings
 extern Settings settings_;
@@ -29,10 +29,11 @@ extern Settings settings_;
 #define  ValueShutterSpeed()  (settings_.getValueShutterSpeed())
 #define  ValueISO()           (settings_.getValueISO())
 #define  ValueFlashPower()    (settings_.getValueFlashPower())
-
+#define  PrintSettings()      (settings_.printSettings())
 // define user mode
 enum ExposureMode
 {
+    Disable   = 0,
     Auto      = 1,
     Manual    = 2,
     Night     = 3,
@@ -119,9 +120,10 @@ public:
     // Get current value
     int getValueExposureMode() const;
     float getValueAperture() const;
-    float getValueShutterSpeed() const;
+    int getValueShutterSpeed() const;
     int getValueISO() const;
     float getValueFlashPower() const;
+    void printSettings() const;
 
 private:
     ExposureMode exposureMode_;
