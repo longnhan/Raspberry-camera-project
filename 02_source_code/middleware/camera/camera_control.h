@@ -10,7 +10,13 @@
 
 class CameraControl {
 public:
-    CameraControl();
+    // Constructor with default parameters
+    CameraControl(
+                int iso = 800, 
+                int shutterSpeed = 500000, 
+                int exposureMode = 1, 
+                float aperture = 1.8,
+                float flashPower = 1.0);
     ~CameraControl();
 
     // Initialize libcamera and set up the camera

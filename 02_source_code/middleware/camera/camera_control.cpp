@@ -11,8 +11,15 @@
 #include <sys/mman.h>
 #include <opencv2/opencv.hpp>
 
-CameraControl::CameraControl()
-    : iso_(800), shutterSpeed_(500000), exposureMode_(1)
+CameraControl::CameraControl(
+	int iso, 
+	int shutterSpeed, 
+	int exposeureMode, 
+	float aperture,
+	float flashPower)
+    : iso_(iso), 
+      shutterSpeed_(shutterSpeed), 
+      exposureMode_(exposeureMode)
 {
     if (!initialize())
     {
