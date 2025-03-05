@@ -7,7 +7,7 @@ Settings::Settings(ExposureMode exposureMode = Manual, Aperture aperture = F5_6,
 }
 
 // Update value
-void Settings::setValue(ExposureMode exposureMode = Manual, Aperture aperture = F5_6, ShutterSpeed shutterSpeed = SS1_2, ISO iso = ISO_800, FlashPower flashPower = FP1_2)
+void Settings::setAllCameraConfig(ExposureMode exposureMode = Disable, Aperture aperture = F5_6, ShutterSpeed shutterSpeed = SS1_2, ISO iso = ISO_800, FlashPower flashPower = FP1_2)
 {
     std::unique_lock lock(sharedMutex);
     exposureMode_ = exposureMode;
@@ -92,7 +92,7 @@ float Settings::getValueAperture() const
 
 int Settings::getValueShutterSpeed() const
 {
-    return 1000000 / shutterSpeed_;
+    return 1000000 / ((shutterSpeed_ == 0) ? 1 : shutterSpeed_ );
 }
 
 int Settings::getValueISO() const
@@ -102,7 +102,7 @@ int Settings::getValueISO() const
 
 float Settings::getValueFlashPower() const
 {
-    return 1.0f / flashPower_;
+    return (flashPower_==0) ? flashPower_ : (1.0f / flashPower_);
 }
 
 void Settings::printSettings() const
@@ -145,5 +145,5 @@ void Settings::printSettings() const
     LOG_DBG("Current Flash power:     1/",flashPower_);
 }
 
-Settings settings_(Manual, F5_6, SS1_2, ISO_800, FP1_2);
+Settings settings_(Disable, F5_6, SS1_2, ISO_800, FP1_2);
 

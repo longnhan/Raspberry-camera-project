@@ -10,11 +10,13 @@ class Settings;
 extern Settings settings_;
 
 // macro to setvalue
-#define  SetExposureMode(a)   (settings_.setExposureMode(a))
-#define  SetAperture(a)       (settings_.setAperture(a))
-#define  SetShutterSpeed(a)   (settings_.setShutterSpeed(a))
-#define  SetISO(a)            (settings_.setISO(a))
-#define  SetFlashPower(a)     (settings_.setFlashPower(a))
+#define  SetAllCameraConfig(a) (settings_.setAllCameraConfig(a))
+
+#define  SetExposureMode(a)    (settings_.setExposureMode(a))
+#define  SetAperture(a)        (settings_.setAperture(a))
+#define  SetShutterSpeed(a)    (settings_.setShutterSpeed(a))
+#define  SetISO(a)             (settings_.setISO(a))
+#define  SetFlashPower(a)      (settings_.setFlashPower(a))
 
 // macro to get enum value
 #define  ExposureMode()       (settings_.getExposureMode())
@@ -103,7 +105,7 @@ public:
     ~Settings() = default;
 
     // Setters
-    void setValue(ExposureMode exposureMode, Aperture aperture, ShutterSpeed shutterSpeed, ISO iso, FlashPower flashPower);
+    void setAllCameraConfig(ExposureMode exposureMode, Aperture aperture, ShutterSpeed shutterSpeed, ISO iso, FlashPower flashPower);
     void setExposureMode(ExposureMode exposureMode);
     void setAperture(Aperture aperture);
     void setShutterSpeed(ShutterSpeed shutterSpeed);
