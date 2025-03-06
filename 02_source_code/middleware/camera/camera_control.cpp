@@ -1,10 +1,5 @@
 #include "camera_control.h"
-#include <libcamera/framebuffer_allocator.h>
-#include <libcamera/request.h>
-#include <libcamera/stream.h>
-#include <libcamera/formats.h>
-#include <libcamera/control_ids.h>
-#include <libcamera/property_ids.h>
+#include <libcamera/libcamera.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <fstream>
