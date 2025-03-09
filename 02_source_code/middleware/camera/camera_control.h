@@ -36,6 +36,7 @@ public:
 private:
     // Helper: Prepare a control list from current settings.
     libcamera::ControlList prepareControls();
+    void addMetadata(const std::string &filePath);
 
     std::unique_ptr<libcamera::CameraManager> cameraManager_;
     std::shared_ptr<libcamera::Camera> camera_;
