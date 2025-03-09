@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Use pkg-config to find libcamera
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBCAMERA REQUIRED libcamera)
+pkg_check_modules(LIBEXIF REQUIRED libexif)
 
 # Find OpenCV
 find_package(OpenCV REQUIRED)
@@ -41,4 +42,5 @@ target_link_libraries(Rasp_Camera_App
     pthread
     ${LIBCAMERA_LIBRARIES}  # Expands to: -lcamera -lcamera-base
     ${OpenCV_LIBS}          # Link OpenCV libraries
+    ${LIBEXIF_LIBRARIES}    # Expands to: -lexif
 )
