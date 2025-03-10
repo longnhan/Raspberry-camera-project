@@ -10,7 +10,13 @@
 
 class CameraControl {
 public:
-    CameraControl();
+    // Constructor with default parameters
+    CameraControl(
+                int iso = 800, 
+                int shutterSpeed = 500000, 
+                int exposureMode = 1, 
+                float aperture = 1.8,
+                float flashPower = 1.0);
     ~CameraControl();
 
     // Initialize libcamera and set up the camera
@@ -30,6 +36,7 @@ public:
 private:
     // Helper: Prepare a control list from current settings.
     libcamera::ControlList prepareControls();
+    void addMetadata(const std::string &filePath);
 
     std::unique_ptr<libcamera::CameraManager> cameraManager_;
     std::shared_ptr<libcamera::Camera> camera_;
