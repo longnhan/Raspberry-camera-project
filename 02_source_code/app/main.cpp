@@ -77,7 +77,7 @@ void cameraThread()
             LOG_DBG("[LOG_DEBUG] finish pop to queue: ", shutterQueue.size());
             
             LOG_DBG("[LOG_DEBUG] start capture image");
-            sonyGlobalShutterCam.captureImage();
+            sonyGlobalShutterCam.captureImage("captured_image.jpg");
             LOG_DBG("[LOG_DEBUG] finish capture image");
             
             LOG_DBG("[LOG_DEBUG] waiting for the next pressing");

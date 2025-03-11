@@ -28,7 +28,7 @@ public:
     void setExposure(int exposure);
 
     // Capture an image
-    bool captureImage();
+    bool captureImage(const std::string &image_path);
 
     // Release resources
     void release();

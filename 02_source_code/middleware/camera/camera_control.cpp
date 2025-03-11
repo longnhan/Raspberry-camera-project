@@ -91,8 +91,10 @@ libcamera::ControlList CameraControl::prepareControls() {
     return controls;
 }
 
-bool CameraControl::captureImage() {
-    if (!camera_) {
+bool CameraControl::captureImage(const std::string &image_path)
+{
+    if (!camera_)
+    {
         std::cerr << "Camera is not initialized!" << std::endl;
         LOG_DBG("[LOG_ERROR] Camera is not initialized!");
         return false;
@@ -104,7 +106,8 @@ bool CameraControl::captureImage() {
     streamConfig.size = {1456, 1088};
     streamConfig.pixelFormat = libcamera::formats::NV12;
     streamConfig.bufferCount = 1;
-    if (camera_->configure(config.get()) < 0) {
+    if (camera_->configure(config.get()) < 0)
+    {
         std::cerr << "Failed to configure camera" << std::endl;
         LOG_DBG("[LOG_ERROR] Failed to configure camera");
         return false;
@@ -119,7 +122,8 @@ bool CameraControl::captureImage() {
 
     libcamera::FrameBufferAllocator allocator(camera_);
     int allocated = allocator.allocate(stream);
-    if (allocated < 0) {
+    if (allocated < 0)
+    {
         std::cerr << "Failed to allocate frame buffers" << std::endl;
         LOG_DBG("[LOG_ERROR] Failed to allocate frame buffers");
         return false;
@@ -127,7 +131,8 @@ bool CameraControl::captureImage() {
     LOG_DBG("[LOG_INFO] Frame buffers allocated successfully, count: ", allocated);
 
     std::unique_ptr<libcamera::Request> request = camera_->createRequest();
-    if (!request) {
+    if (!request)
+    {
         std::cerr << "Failed to create request" << std::endl;
         LOG_DBG("[LOG_ERROR] Failed to create request");
         return false;
@@ -135,7 +140,8 @@ bool CameraControl::captureImage() {
     LOG_DBG("[LOG_INFO] Capture request created");
 
     const auto &buffers = allocator.buffers(stream);
-    if (buffers.empty()) {
+    if (buffers.empty())
+    {
         std::cerr << "No buffers allocated for stream" << std::endl;
         LOG_DBG("[LOG_ERROR] No buffers allocated for stream");
         return false;
@@ -147,17 +153,20 @@ bool CameraControl::captureImage() {
     size_t totalSize = yPlaneSize + uvPlaneSize;
 
     size_t bufferTotalSize = 0;
-    for (const auto &plane : buffer->planes()) {
+    for (const auto &plane : buffer->planes())
+    {
         bufferTotalSize += plane.length;
     }
     LOG_DBG("[LOG_INFO] Buffer size before capture - Expected for NV12: ", totalSize, " Allocated: ", bufferTotalSize);
-    if (bufferTotalSize < totalSize) {
+    if (bufferTotalSize < totalSize)
+    {
         std::cerr << "Buffer too small for NV12 format! Expected: " << totalSize << ", Got: " << bufferTotalSize << std::endl;
         LOG_DBG("[LOG_ERROR] Buffer too small for NV12 format! Expected: ", totalSize, " Got: ", bufferTotalSize);
         return false;
     }
 
-    if (request->addBuffer(stream, buffer.get()) < 0) {
+    if (request->addBuffer(stream, buffer.get()) < 0)
+    {
         std::cerr << "Failed to add buffer to request" << std::endl;
         LOG_DBG("[LOG_ERROR] Failed to add buffer to request");
         return false;
@@ -167,14 +176,16 @@ bool CameraControl::captureImage() {
     request->controls() = prepareControls();
     LOG_DBG("[LOG_INFO] Controls set - ISO: ", iso_, " ShutterSpeed: ", shutterSpeed_, " ExposureMode: ", exposureMode_);
 
-    if (camera_->start() < 0) {
+    if (camera_->start() < 0)
+    {
         std::cerr << "Failed to start camera" << std::endl;
         LOG_DBG("[LOG_ERROR] Failed to start camera");
         return false;
     }
     LOG_DBG("[LOG_INFO] Camera started");
 
-    if (camera_->queueRequest(request.get()) < 0) {
+    if (camera_->queueRequest(request.get()) < 0)
+    {
         std::cerr << "Failed to queue request" << std::endl;
         LOG_DBG("[LOG_ERROR] Failed to queue request");
         camera_->stop();
@@ -193,7 +204,8 @@ bool CameraControl::captureImage() {
     LOG_DBG("[LOG_INFO] Buffer details - FD: ", fd, " Length: ", length);
 
     void *mappedMemory = mmap(nullptr, length, PROT_READ, MAP_PRIVATE, fd, 0);
-    if (mappedMemory == MAP_FAILED) {
+    if (mappedMemory == MAP_FAILED)
+    {
         std::cerr << "Failed to map memory" << std::endl;
         LOG_DBG("[LOG_ERROR] Failed to map memory");
         return false;
@@ -203,11 +215,14 @@ bool CameraControl::captureImage() {
     // Save raw NV12 buffer for debugging (optional)
 #ifdef RAW_IMAGE_SAVING
     std::ofstream outFile("captured_image.raw", std::ios::binary);
-    if (outFile) {
+    if (outFile)
+    {
         outFile.write(static_cast<const char*>(mappedMemory), length);
         outFile.close();
         LOG_DBG("[LOG_INFO] Raw NV12 buffer saved as 'captured_image.raw'");
-    } else {
+    }
+    else
+    {
         LOG_DBG("[LOG_ERROR] Failed to save raw NV12 buffer");
         munmap(mappedMemory, length);
         return false;
@@ -223,19 +238,19 @@ bool CameraControl::captureImage() {
     std::vector<int> params;
     params.push_back(cv::IMWRITE_JPEG_QUALITY);
     params.push_back(95);
-    if (!cv::imwrite("captured_image.jpg", bgrImage, params)) {
+    if (!cv::imwrite(image_path, bgrImage, params)) {
         std::cerr << "Failed to save JPEG image" << std::endl;
-        LOG_DBG("[LOG_ERROR] Failed to save JPEG image to 'captured_image.jpg'");
+        LOG_DBG("[LOG_ERROR] Failed to save JPEG image to '" + image_path + "'");
         munmap(mappedMemory, length);
         return false;
     }
-    LOG_DBG("[LOG_INFO] Color JPEG saved as 'captured_image.jpg'");
+    LOG_DBG("[LOG_INFO] Color JPEG saved as '" + image_path + "'");
 
     munmap(mappedMemory, length);
     LOG_DBG("[LOG_INFO] Memory unmapped");
 
     // Add metadata to the saved JPEG
-    addMetadata("captured_image.jpg");
+    addMetadata(image_path);
 
     return true;
 }
