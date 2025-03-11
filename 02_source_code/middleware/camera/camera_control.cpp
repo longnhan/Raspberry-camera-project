@@ -230,24 +230,7 @@ bool CameraControl::captureImage(const std::string &image_path)
 #endif /*RAW_IMAGE_SAVING*/
 
     // Convert to color JPEG
-    int totalRows = height + height / 2;
-    cv::Mat nv12Mat(totalRows, width, CV_8UC1, mappedMemory, stride);
-    cv::Mat bgrImage;
-    cv::cvtColor(nv12Mat, bgrImage, cv::COLOR_YUV2BGR_NV12);
-
-    std::vector<int> params;
-    params.push_back(cv::IMWRITE_JPEG_QUALITY);
-    params.push_back(95);
-    if (!cv::imwrite(image_path, bgrImage, params)) {
-        std::cerr << "Failed to save JPEG image" << std::endl;
-        LOG_DBG("[LOG_ERROR] Failed to save JPEG image to '" + image_path + "'");
-        munmap(mappedMemory, length);
-        return false;
-    }
-    LOG_DBG("[LOG_INFO] Color JPEG saved as '" + image_path + "'");
-
-    munmap(mappedMemory, length);
-    LOG_DBG("[LOG_INFO] Memory unmapped");
+    openCV_JPG_Conversion(mappedMemory, width, height, stride, image_path, length);
 
     // Add metadata to the saved JPEG
     addMetadata(image_path);
@@ -448,6 +431,30 @@ void CameraControl::addMetadata(const std::string &filePath)
     exif_data_unref(exifData);
 
     std::cout << "Metadata added successfully." << std::endl;
+}
+
+bool CameraControl::openCV_JPG_Conversion(void *mappedMemory, int width, int height, int stride, const std::string &image_path, size_t length)
+{
+    int totalRows = height + height / 2;
+    cv::Mat nv12Mat(totalRows, width, CV_8UC1, mappedMemory, stride);
+    cv::Mat bgrImage;
+    cv::cvtColor(nv12Mat, bgrImage, cv::COLOR_YUV2BGR_NV12);
+
+    std::vector<int> params;
+    params.push_back(cv::IMWRITE_JPEG_QUALITY);
+    params.push_back(95);
+    if (!cv::imwrite(image_path, bgrImage, params)) {
+        std::cerr << "Failed to save JPEG image" << std::endl;
+        LOG_DBG("[LOG_ERROR] Failed to save JPEG image to '" + image_path + "'");
+        munmap(mappedMemory, length);
+        return false;
+    }
+    LOG_DBG("[LOG_INFO] Color JPEG saved as '" + image_path + "'");
+
+    munmap(mappedMemory, length);
+    LOG_DBG("[LOG_INFO] Memory unmapped");
+
+    return true;
 }
 
 void CameraControl::release()

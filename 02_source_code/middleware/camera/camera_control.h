@@ -36,6 +36,7 @@ public:
 private:
     // Helper: Prepare a control list from current settings.
     libcamera::ControlList prepareControls();
+    bool openCV_JPG_Conversion(void *mappedMemory, int width, int height, int stride, const std::string &image_path, size_t length);
     void addMetadata(const std::string &filePath);
 
     std::unique_ptr<libcamera::CameraManager> cameraManager_;
