@@ -10,28 +10,28 @@ class Settings;
 extern Settings settings_;
 
 // macro to setvalue
-#define  SetAllCameraConfig(a) (settings_.setAllCameraConfig(a))
+#define  SET_ALL_CAMERA_CONFIG(a,b,c,d,e) (settings_.setAllCameraConfig(a,b,c,d,e))
 
-#define  SetExposureMode(a)    (settings_.setExposureMode(a))
-#define  SetAperture(a)        (settings_.setAperture(a))
-#define  SetShutterSpeed(a)    (settings_.setShutterSpeed(a))
-#define  SetISO(a)             (settings_.setISO(a))
-#define  SetFlashPower(a)      (settings_.setFlashPower(a))
+#define  SET_EXPOSURE_MODE(a)    (settings_.setExposureMode(a))
+#define  SET_APERTURE(a)         (settings_.setAperture(a))
+#define  SET_SHUTTLE_SPEED(a)    (settings_.setShutterSpeed(a))
+#define  SET_ISO(a)              (settings_.setISO(a))
+#define  SET_FLASH_POWER(a)      (settings_.setFlashPower(a))
 
 // macro to get enum value
-#define  ExposureMode()       (settings_.getExposureMode())
-#define  Aperture()           (settings_.getAperture())
-#define  ShutterSpeed()       (settings_.getShutterSpeed())
-#define  ISO()                (settings_.getISO())
-#define  FlashPower()         (settings_.getFlashPower())
+#define  EXPOSURE_MODE()         (settings_.getExposureMode())
+#define  APERTURE()              (settings_.getAperture())
+#define  SHUTTLE_SPEED()         (settings_.getShutterSpeed())
+#define  ISO()                   (settings_.getISO())
+#define  FLASH_POWER()           (settings_.getFlashPower())
 
 // macro to get value
-#define  ValueExposureMode()  (settings_.getValueExposureMode())
-#define  ValueAperture()      (settings_.getValueAperture())
-#define  ValueShutterSpeed()  (settings_.getValueShutterSpeed())
-#define  ValueISO()           (settings_.getValueISO())
-#define  ValueFlashPower()    (settings_.getValueFlashPower())
-#define  PrintSettings()      (settings_.printSettings())
+#define  VALUE_EXPOSURE_MODE()   (settings_.getValueExposureMode())
+#define  VALUE_APERTURE()        (settings_.getValueAperture())
+#define  VALUE_SHUTTLE_SPEED()   (settings_.getValueShutterSpeed())
+#define  VALUE_ISO()             (settings_.getValueISO())
+#define  VALUE_FLASH_POWER()     (settings_.getValueFlashPower())
+#define  PRINT_SETTINGS()        (settings_.printSettings())
 // define user mode
 enum ExposureMode
 {
@@ -101,6 +101,13 @@ enum FlashPower
 class Settings
 {
 public:
+    // inline make funtion static avoid error redefination
+    inline static int ExposureModeConvert(ExposureMode exposureMode) {return static_cast<int>(exposureMode); }
+    inline static float ApertureConvert(Aperture aperture) {return aperture / 10.0f;}
+    inline static int ShutterSpeedConvert(ShutterSpeed shutterSpeed) {return 1000000 / ((shutterSpeed == 0) ? 1 : shutterSpeed ); }
+    inline static int ISOConvert(ISO iso) {return static_cast<int>(iso);}
+    inline static float FlashPowerCOnvert(FlashPower flashPower) {return (flashPower==0) ? flashPower : (1.0f / flashPower);}
+
     Settings(ExposureMode exposureMode, Aperture aperture, ShutterSpeed shutterSpeed, ISO iso, FlashPower flashPower);
     ~Settings() = default;
 
