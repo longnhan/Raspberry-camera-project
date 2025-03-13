@@ -17,21 +17,21 @@ public:
                 int exposureMode = 1, 
                 float aperture = 1.8,
                 float flashPower = 1.0);
-    ~CameraControl();
+    virtual ~CameraControl();
 
     // Initialize libcamera and set up the camera
-    bool initialize();
+    virtual bool initialize();
 
     // Set camera parameters
-    void setISO(int iso);
-    void setShutterSpeed(int speed);
-    void setExposure(int exposure);
+    virtual void setISO(int iso);
+    virtual void setShutterSpeed(int speed);
+    virtual void setExposure(int exposure);
 
     // Capture an image
-    bool captureImage(const std::string &image_path);
+    virtual bool captureImage(const std::string &image_path);
 
     // Release resources
-    void release();
+    virtual void release();
 
 private:
     // Helper: Prepare a control list from current settings.
