@@ -2,7 +2,8 @@
 
 # List source files for the storage module
 set(STORAGE_SOURCES
-    image_storage.cpp
+    photo_management.cpp
+    photo_management.h
     storage_log.cpp
 )
 
