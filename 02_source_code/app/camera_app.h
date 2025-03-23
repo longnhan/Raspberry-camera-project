@@ -9,7 +9,7 @@
 
 #include <fstream>
 #include "camera_control.h"
-#include "getname.h"
+#include "photo_management.h"
 #include "settings.h"
 #include "log.h"
 

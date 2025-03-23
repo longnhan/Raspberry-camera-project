@@ -19,4 +19,4 @@ add_library(app STATIC ${APP_SOURCES})
 target_include_directories(app PUBLIC ${CMAKE_SOURCE_DIR}/app)
 
 # Link the app library with the gpio library
-target_link_libraries(app PUBLIC gpio utils camera_control)
+target_link_libraries(app PUBLIC gpio utils camera_control storage)

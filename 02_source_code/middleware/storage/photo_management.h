@@ -1,5 +1,5 @@
-#ifndef _GETNAME_H_
-#define _GETNAME_H_
+#ifndef _PHOTO_MANAGEMENT_H_
+#define _PHOTO_MANAGEMENT_H_
 
 #include <fstream>
 #include <sstream>
@@ -7,18 +7,18 @@
 #include <cstdlib>
 #include <iostream>
 
-class GetName
+class photo_management
 {
 public:
-    GetName();
-    ~GetName();
+    photo_management();
+    ~photo_management();
     std::string getpathpicture();
     std::string getpathvideo();
     std::string getpathfolder();
 
 private:
-    void readSerial();
-    void writeSerial();
+    void read_photo_ordinal_num();
+    void write_photo_ordinal_num();
     std::string configpath;
     std::string user;
     std::fstream f_config;
@@ -26,4 +26,4 @@ private:
     long serialvideo;
 };
 
-#endif
+#endif /*_PHOTO_MANAGEMENT_H_*/

@@ -1,6 +1,6 @@
-#include "getname.h"
+#include "photo_management.h"
 
-GetName::GetName()
+photo_management::photo_management()
     : user(std::getenv("USER")), serialpicture(0), serialvideo(0)
 {
     configpath = std::string("/home/") + user + "/.camera_config";
@@ -14,12 +14,12 @@ GetName::GetName()
     }
     checkFile.close();
 
-    readSerial(); 
+    read_photo_ordinal_num(); 
 }
 
-GetName::~GetName() = default;
+photo_management::~photo_management() = default;
 
-void GetName::readSerial()
+void photo_management::read_photo_ordinal_num()
 {
     std::ifstream file(configpath);
     if (!file.is_open()) {
@@ -38,7 +38,7 @@ void GetName::readSerial()
     file.close();
 }
 
-void GetName::writeSerial()
+void photo_management::write_photo_ordinal_num()
 {
     std::ofstream file(configpath, std::ios::trunc); 
     if (!file.is_open()) {
@@ -52,27 +52,27 @@ void GetName::writeSerial()
     file.close();
 }
 
-std::string GetName::getpathpicture()
+std::string photo_management::getpathpicture()
 {
     std::ostringstream oss;
     oss << std::setw(4) << std::setfill('0') << serialpicture;
     ++serialpicture;
-    writeSerial(); // Cập nhật serial mới vào file
+    write_photo_ordinal_num(); // Cập nhật serial mới vào file
 
     return getpathfolder() + "P" + oss.str() + ".jpg";
 }
 
-std::string GetName::getpathvideo()
+std::string photo_management::getpathvideo()
 {
     std::ostringstream oss;
     oss << std::setw(4) << std::setfill('0') << serialvideo;
     ++serialvideo;
-    writeSerial(); 
+    write_photo_ordinal_num(); 
 
     return getpathfolder() + "V" + oss.str() + ".mp4";
 }
 
-std::string GetName::getpathfolder()
+std::string photo_management::getpathfolder()
 {
     return std::string("/home/") + user + "/media/";
 }
