@@ -1,13 +1,27 @@
-#include "settings.h"
+#include "cameraSetting.h"
 
 // Constructor
-Settings::Settings(ExposureMode exposureMode = Manual, Aperture aperture = F5_6, ShutterSpeed shutterSpeed = SS1_2, ISO iso = ISO_800, FlashPower flashPower = FP1_2)
-    : exposureMode_(exposureMode), aperture_(aperture), shutterSpeed_(shutterSpeed), iso_(iso), flashPower_(flashPower)
+cameraSetting::cameraSetting(
+                            ExposureMode exposureMode,
+                            Aperture aperture,
+                            ShutterSpeed shutterSpeed,
+                            ISO iso,
+                            FlashPower flashPower)
+    : exposureMode_(exposureMode), 
+    aperture_(aperture), 
+    shutterSpeed_(shutterSpeed), 
+    iso_(iso), 
+    flashPower_(flashPower)
 {
 }
 
 // Update value
-void Settings::setAllCameraConfig(ExposureMode exposureMode = Disable, Aperture aperture = F5_6, ShutterSpeed shutterSpeed = SS1_2, ISO iso = ISO_800, FlashPower flashPower = FP1_2)
+void cameraSetting::setAllCameraConfig(
+                                    ExposureMode exposureMode, 
+                                    Aperture aperture, 
+                                    ShutterSpeed shutterSpeed, 
+                                    ISO iso, 
+                                    FlashPower flashPower)
 {
     std::unique_lock lock(sharedMutex);
     exposureMode_ = exposureMode;
@@ -18,94 +32,94 @@ void Settings::setAllCameraConfig(ExposureMode exposureMode = Disable, Aperture 
 }
 
 // Setters
-void Settings::setExposureMode(ExposureMode exposureMode)
+void cameraSetting::setExposureMode(ExposureMode exposureMode)
 {
     std::unique_lock lock(sharedMutex);
     exposureMode_ = exposureMode;
 }
 
-void Settings::setAperture(Aperture aperture)
+void cameraSetting::setAperture(Aperture aperture)
 {
     std::unique_lock lock(sharedMutex);
     aperture_ = aperture;
 }
 
-void Settings::setShutterSpeed(ShutterSpeed shutterSpeed)
+void cameraSetting::setShutterSpeed(ShutterSpeed shutterSpeed)
 {
     std::unique_lock lock(sharedMutex);
     shutterSpeed_ = shutterSpeed;
 }
 
-void Settings::setISO(ISO iso)
+void cameraSetting::setISO(ISO iso)
 {
     std::unique_lock lock(sharedMutex);
     iso_ = iso;
 }
 
-void Settings::setFlashPower(FlashPower flashPower)
+void cameraSetting::setFlashPower(FlashPower flashPower)
 {
     std::unique_lock lock(sharedMutex);
     flashPower_ = flashPower;
 }
 
 // Getters
-ExposureMode Settings::getExposureMode() const
+ExposureMode cameraSetting::getExposureMode() const
 {
     std::shared_lock lock(sharedMutex);
     return exposureMode_;
 }
 
-Aperture Settings::getAperture() const
+Aperture cameraSetting::getAperture() const
 {
     std::shared_lock lock(sharedMutex);
     return aperture_;
 }
 
-ShutterSpeed Settings::getShutterSpeed() const
+ShutterSpeed cameraSetting::getShutterSpeed() const
 {
     std::shared_lock lock(sharedMutex);
     return shutterSpeed_;
 }
 
-ISO Settings::getISO() const
+ISO cameraSetting::getISO() const
 {
     std::shared_lock lock(sharedMutex);
     return iso_;
 }
 
-FlashPower Settings::getFlashPower() const
+FlashPower cameraSetting::getFlashPower() const
 {
     std::shared_lock lock(sharedMutex);
     return flashPower_;
 }
 
 // get current value 
-int Settings::getValueExposureMode() const
+int cameraSetting::getValueExposureMode() const
 {
     return static_cast<int>(exposureMode_);
 }
 
-float Settings::getValueAperture() const
+float cameraSetting::getValueAperture() const
 {
     return aperture_ / 10.0f;
 }
 
-int Settings::getValueShutterSpeed() const
+int cameraSetting::getValueShutterSpeed() const
 {
     return 1000000 / ((shutterSpeed_ == 0) ? 1 : shutterSpeed_ );
 }
 
-int Settings::getValueISO() const
+int cameraSetting::getValueISO() const
 {
     return static_cast<int>(iso_);
 }
 
-float Settings::getValueFlashPower() const
+float cameraSetting::getValueFlashPower() const
 {
     return (flashPower_==0) ? flashPower_ : (1.0f / flashPower_);
 }
 
-void Settings::printSettings() const
+void cameraSetting::printSettings() const
 {
     switch(exposureMode_)
     {
@@ -145,5 +159,5 @@ void Settings::printSettings() const
     LOG_DBG("Current Flash power:     1/",flashPower_);
 }
 
-Settings settings_(Disable, F5_6, SS1_2, ISO_800, FP1_2);
+cameraSetting settings_(Disable, F5_6, SS1_2, ISO_800, FP1_2);
 

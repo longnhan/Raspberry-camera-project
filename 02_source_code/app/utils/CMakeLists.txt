@@ -5,8 +5,8 @@ set(UTILS_SOURCES
     delay.h
     diagnostics.h
     diagnostics.cpp
-    settings.h
-    settings.cpp
+    cameraSetting.h
+    cameraSetting.cpp
 )
 
 # Create the UTILS librarys

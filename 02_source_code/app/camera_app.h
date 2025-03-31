@@ -10,7 +10,7 @@
 #include <fstream>
 #include "camera_control.h"
 #include "photo_management.h"
-#include "settings.h"
+#include "cameraSetting.h"
 #include "log.h"
 
 class CameraApp: public CameraControl
