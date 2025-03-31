@@ -4,6 +4,8 @@ Button shutter_btn(SHUTTER_BUTTON, GPIO_INPUT, EN_ACTIVE_HIGH);
 
 std::atomic<bool> keep_running(true);
 
+cameraSetting sonyGSCCam;
+
 CameraControl sonyGlobalShutterCam;
 
 // Shared data structure for shooting mechanism

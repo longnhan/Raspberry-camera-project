@@ -2,8 +2,8 @@
 
 
 CameraApp::CameraApp(ISO iso, ShutterSpeed shuttleSpeed, ExposureMode exposureMode, Aperture aperture, FlashPower flashPower)
-                   :CameraControl(Settings::ISOConvert(iso), Settings::ShutterSpeedConvert(shuttleSpeed)
-                   , Settings::ExposureModeConvert(exposureMode), Settings::ApertureConvert(aperture), Settings::FlashPowerCOnvert(flashPower))
+                   :CameraControl(cameraSetting::ISOConvert(iso), cameraSetting::ShutterSpeedConvert(shuttleSpeed)
+                   , cameraSetting::ExposureModeConvert(exposureMode), cameraSetting::ApertureConvert(aperture), cameraSetting::FlashPowerCOnvert(flashPower))
 
 {
     PRINT_SETTINGS();

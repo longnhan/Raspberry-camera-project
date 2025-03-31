@@ -5,9 +5,9 @@
 #include <shared_mutex>
 #include <thread>
 #include "log.h"
-class Settings;
+class cameraSetting;
 // share settings
-extern Settings settings_;
+extern cameraSetting settings_;
 
 // macro to setvalue
 #define  SET_ALL_CAMERA_CONFIG(a,b,c,d,e) (settings_.setAllCameraConfig(a,b,c,d,e))
@@ -98,7 +98,7 @@ enum FlashPower
     FP1_64 = 64   // 1/64
 };
 
-class Settings
+class cameraSetting
 {
 public:
     // inline make funtion static avoid error redefination
@@ -108,11 +108,20 @@ public:
     inline static int ISOConvert(ISO iso) {return static_cast<int>(iso);}
     inline static float FlashPowerCOnvert(FlashPower flashPower) {return (flashPower==0) ? flashPower : (1.0f / flashPower);}
 
-    Settings(ExposureMode exposureMode, Aperture aperture, ShutterSpeed shutterSpeed, ISO iso, FlashPower flashPower);
-    ~Settings() = default;
+    cameraSetting(
+                ExposureMode exposureMode=Disable,
+                Aperture aperture=F4_0,
+                ShutterSpeed shutterSpeed=SS1_125,
+                ISO iso=ISO_800,
+                FlashPower flashPower=FP1_2);
+    ~cameraSetting() = default;
 
     // Setters
-    void setAllCameraConfig(ExposureMode exposureMode, Aperture aperture, ShutterSpeed shutterSpeed, ISO iso, FlashPower flashPower);
+    void setAllCameraConfig(ExposureMode exposureMode,
+                            Aperture aperture,
+                            ShutterSpeed shutterSpeed,
+                            ISO iso,
+                            FlashPower flashPower);
     void setExposureMode(ExposureMode exposureMode);
     void setAperture(Aperture aperture);
     void setShutterSpeed(ShutterSpeed shutterSpeed);
