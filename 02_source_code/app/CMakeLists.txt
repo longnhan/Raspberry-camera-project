@@ -6,8 +6,6 @@ set(APP_SOURCES
     button_handler.h
     camera_app.h
     screen.h
-    camera_app.cpp
-    camera_app.h
 )
 # Add subdirectories for the utils modules
 add_subdirectory(utils)
