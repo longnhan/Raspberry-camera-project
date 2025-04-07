@@ -4,9 +4,9 @@ Button shutter_btn(SHUTTER_BUTTON, GPIO_INPUT, EN_ACTIVE_HIGH);
 
 std::atomic<bool> keep_running(true);
 
-cameraSetting sonyGSCCam;
+cameraSetting sonyGSCSettings;
 
-CameraControl sonyGlobalShutterCam;
+CameraApp sonyGSC(ISO_800, SS1_125, Disable, F4_0, FP1_8);
 
 // Shared data structure for shooting mechanism
 std::queue<int> shutterQueue;
@@ -16,7 +16,7 @@ void initializeModules()
 
 }
 
-int main() 
+int main()
 {
     // Save build time , __DATE__ and __TIME__ macro will be process in preprocesser
     std::cerr << "Time build : " << __DATE__ << " " << __TIME__ << std::endl; 
@@ -78,8 +78,14 @@ void cameraThread()
             shutterQueue.pop();
             LOG_DBG("[LOG_DEBUG] finish pop to queue: ", shutterQueue.size());
             
+            //get ISO value
+            sonyGSC.setISO(sonyGSCSettings.getValueISO());
+            //get SS value
+            sonyGSC.setShutterSpeed(sonyGSCSettings.getValueShutterSpeed());
+            
+            //call capture image
             LOG_DBG("[LOG_DEBUG] start capture image");
-            sonyGlobalShutterCam.captureImage("captured_image.jpg");
+            sonyGSC.captureImage("captured_image.jpg");
             LOG_DBG("[LOG_DEBUG] finish capture image");
             
             LOG_DBG("[LOG_DEBUG] waiting for the next pressing");
