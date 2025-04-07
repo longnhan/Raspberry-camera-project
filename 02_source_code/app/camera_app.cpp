@@ -1,19 +1,24 @@
 #include "camera_app.h"
 
 
-CameraApp::CameraApp(ISO iso, ShutterSpeed shuttleSpeed, ExposureMode exposureMode, Aperture aperture, FlashPower flashPower)
-                   :CameraControl(cameraSetting::ISOConvert(iso), cameraSetting::ShutterSpeedConvert(shuttleSpeed)
-                   , cameraSetting::ExposureModeConvert(exposureMode), cameraSetting::ApertureConvert(aperture), cameraSetting::FlashPowerCOnvert(flashPower))
+CameraApp::CameraApp(ISO iso, 
+                    ShutterSpeed shuttleSpeed,
+                    ExposureMode exposureMode,
+                    Aperture aperture,
+                    FlashPower flashPower)
+                   :CameraControl(cameraSetting::ISOConvert(iso), 
+                                cameraSetting::ShutterSpeedConvert(shuttleSpeed),
+                                cameraSetting::ExposureModeConvert(exposureMode),
+                                cameraSetting::ApertureConvert(aperture),
+                                cameraSetting::FlashPowerCOnvert(flashPower))
 
 {
     PRINT_SETTINGS();
 }
 
-
-
 CameraApp::~CameraApp()
 {
-    CameraControl::~CameraControl();
+    release();
 }
 
 bool CameraApp::initialize()
@@ -21,51 +26,30 @@ bool CameraApp::initialize()
     return CameraControl::initialize();
 }
 
-
-// Set camera parameters
-void CameraApp::setISO(int iso)  
+// Set camera parameters (wrappers)
+void CameraApp::setISO(int iso)
 {
-    
     CameraControl::setISO(iso);
 }
 
-void CameraApp::setShutterSpeed(int speed)  
+void CameraApp::setShutterSpeed(int shutterSpeed)
 {
-    CameraControl::setShutterSpeed(speed);
+    CameraControl::setShutterSpeed(shutterSpeed);
 }
 
-void CameraApp::setExposure(int exposure)  
+void CameraApp::setExposure(int exposureMode)
 {
-    CameraControl::setExposure(exposure);
+    CameraControl::setExposure(exposureMode);
 }
 
-
-// Capture an image
-bool CameraApp::captureImage(const std::string &image_path)  
+// Capture an image (wrapper)
+bool CameraApp::captureImage(const std::string &image_path)
 {
     return CameraControl::captureImage(image_path);
 }
 
-
-// Release resources
-void CameraApp::release()  
+// Release resources (wrapper)
+void CameraApp::release()
 {
     CameraControl::release();
-}
-
-
-void CameraApp::setISO(ISO iso)
-{
-    SET_ISO(iso);
-    CameraApp::setISO(VALUE_ISO());
-}
-void CameraApp::setShutterSpeed(ShutterSpeed shuttleSpeed)
-{
-    SET_SHUTTLE_SPEED(shuttleSpeed);
-    CameraApp::setShutterSpeed(VALUE_SHUTTLE_SPEED());
-}
-void CameraApp::setExposure(ExposureMode exposureMode)
-{
-    SET_EXPOSURE_MODE(exposureMode);
-    CameraApp::setExposure(VALUE_EXPOSURE_MODE());
 }

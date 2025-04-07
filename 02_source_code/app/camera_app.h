@@ -16,35 +16,32 @@
 class CameraApp: public CameraControl
 {
     public:
-    // Constructor
         CameraApp(ISO iso = ISO()
         , ShutterSpeed shuttleSpeed = SHUTTLE_SPEED() 
         , ExposureMode exposureMode = EXPOSURE_MODE()
         , Aperture aperture = APERTURE()
         , FlashPower flashPower = FLASH_POWER());
 
-        ~CameraApp();
-
-        virtual bool initialize();
+        virtual ~CameraApp();
+        bool initialize();
 
         // Set camera parameters
-        virtual void setISO(ISO iso);
-        virtual void setShutterSpeed(ShutterSpeed shuttleSpeed);
-        virtual void setExposure(ExposureMode exposureMode);
+        void setISO(int iso);
+        void setShutterSpeed(int shutterSpeed);
+        void setExposure(int exposureMode);
     
         // Capture an image
-        virtual bool captureImage(const std::string &image_path) override final;
+        bool captureImage(const std::string &image_path);
     
         // Release resources
-        virtual void release() override final;
+        void release();
     
     private:
-        virtual void setISO(int iso) override final;
-        virtual void setShutterSpeed(int speed) override final;
-        virtual void setExposure(int exposure) override final;
+        // virtual void setISO(int iso) override final;
+        // virtual void setShutterSpeed(int speed) override final;
+        // virtual void setExposure(int exposure) override final;
     
 
 };
-
 
 #endif //_CAMERA_APP_H_
