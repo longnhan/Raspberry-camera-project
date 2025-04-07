@@ -32,15 +32,15 @@ add_executable(Rasp_Camera_App
 
 # Link the app with necessary libraries
 target_link_libraries(Rasp_Camera_App
-    camera_control          # Your middleware library
-    gpio                    # GPIO library
-    gui                     # GUI library
-    logging                 # Logging library
-    storage                 # Storage library
-    utils                   # utils library
     app
+    camera_control
+    utils
+    gpio
+    storage
+    logging
+    gui
     pthread
-    ${LIBCAMERA_LIBRARIES}  # Expands to: -lcamera -lcamera-base
-    ${OpenCV_LIBS}          # Link OpenCV libraries
-    ${LIBEXIF_LIBRARIES}    # Expands to: -lexif
+    ${LIBCAMERA_LIBRARIES}
+    ${OpenCV_LIBS}
+    ${LIBEXIF_LIBRARIES}
 )
