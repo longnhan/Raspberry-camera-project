@@ -6,6 +6,8 @@ std::atomic<bool> keep_running(true);
 
 cameraSetting sonyGSCSettings;
 
+photo_management sonyGSCPhotoMgr;
+
 CameraApp sonyGSC(ISO_800, SS1_125, Disable, F4_0, FP1_8);
 
 // Shared data structure for shooting mechanism
@@ -85,7 +87,7 @@ void cameraThread()
             
             //call capture image
             LOG_DBG("[LOG_DEBUG] start capture image");
-            sonyGSC.captureImage("captured_image.jpg");
+            sonyGSC.captureImage(sonyGSCPhotoMgr.getpathpicture());
             LOG_DBG("[LOG_DEBUG] finish capture image");
             
             LOG_DBG("[LOG_DEBUG] waiting for the next pressing");
