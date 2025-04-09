@@ -6,6 +6,10 @@
 #include <iomanip>
 #include <cstdlib>
 #include <iostream>
+#include <sys/stat.h> 
+
+constexpr const char*  FOLDER_PATH = "/home/pi/media/";
+constexpr const char* COUNTING_FILE = "/home/pi/media/.camera_save_photo_count";
 
 class photo_management
 {
@@ -19,7 +23,7 @@ public:
 private:
     void read_photo_ordinal_num();
     void write_photo_ordinal_num();
-    std::string configpath;
+    std::string cntFilePath;
     std::string user;
     std::fstream f_config;
     long serialpicture;
