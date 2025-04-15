@@ -20,6 +20,7 @@ uint8_t Button::read()
     // }
     // Read the GPIO pin state and adjust for active-high or active-low configuration
     uint8_t state = GPIO::read();
+    DELAY_MS(5);
 
     return state;
 }
