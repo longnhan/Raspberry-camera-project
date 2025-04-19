@@ -28,7 +28,7 @@ int main()
     // Initialize all modules
     initializeModules();
 
-    LOG_STT("Application started!");
+    LOG_DBG("Application started!");
     
     // Create a separate thread for button handling
     std::thread button_handler(buttonThread);
@@ -45,7 +45,7 @@ int main()
 
 void buttonThread()
 {
-    LOG_STT(":::::::::::: <--- BUTTON HANDLER START ---> ::::::::::::");
+    LOG_DBG(":::::::::::: <--- BUTTON HANDLER START ---> ::::::::::::");
     
     static uint32_t currnt_shot = 0;
     while (keep_running)
@@ -67,7 +67,7 @@ void buttonThread()
 
 void cameraThread()
 {
-    LOG_STT(":::::::::::: <--- CAMERA OPERATING START ---> ::::::::::::");
+    LOG_DBG(":::::::::::: <--- CAMERA OPERATING START ---> ::::::::::::");
 
     while (keep_running)
     {
@@ -99,7 +99,7 @@ void signalHandler(int signal)
 {
     if (signal == SIGINT)
     {
-        LOG_STT("Ctrl+C detected. Cleaning up and exiting...");
+        LOG_DBG("Ctrl+C detected. Cleaning up and exiting...");
         keep_running = false;
     }
 }
