@@ -34,16 +34,22 @@ The project is optimized for embedded performance and structured for scalability
 
 ---
 
-## Dependencies
+## OS Information
+- OS: Raspbian GNU/Linux 11 (bullseye)
+- Kernel: 6.6.67-v8+
+- Architecture: aarch64
+- Device: Raspberry Pi 4 / Compute Module 4
 
-Make sure the following libraries and tools are installed:
-
-- **libcamera** – Camera control backend  
-- **OpenCV** – Image capture & processing  
-- **SDL2** – GUI rendering for live preview  
-- **libexif** – EXIF metadata handling  
-- **CMake** – Build system  
-- **g++ / gcc** – Native or cross toolchain for Raspberry Pi
+## Dependency Versions
+- libcamera:
+  + libcamera-apps build: 7e4d3d71867f 17-07-2023 (07:34:42)
+  + libcamera build: v0.0.5+83-bde9b04f
+- OpenCV:    4.5.1
+- SDL2:      2.0.14
+- libexif:   0.6.22-3
+- CMake:     3.18.4
+- Make: 4.3 (GNU Make)
+- G++:       10.2.1 (Raspbian 10.2.1-6+rpi1)
 
 ---
 
