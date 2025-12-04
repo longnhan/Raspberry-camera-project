@@ -16,8 +16,11 @@ pkg_check_modules(LIBEXIF REQUIRED libexif)
 # Find OpenCV
 find_package(OpenCV REQUIRED)
 
+# Use PkgConfig to find SDL2
+pkg_check_modules(SDL2 REQUIRED sdl2)
+
 # Include directories
-include_directories(${LIBCAMERA_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
+include_directories(${LIBCAMERA_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS})
 link_directories(${LIBCAMERA_LIBRARY_DIRS})
 add_definitions(${LIBCAMERA_CFLAGS_OTHER})
 
@@ -43,4 +46,5 @@ target_link_libraries(Rasp_Camera_App
     ${LIBCAMERA_LIBRARIES}
     ${OpenCV_LIBS}
     ${LIBEXIF_LIBRARIES}
+    ${SDL2_LIBRARIES}
 )

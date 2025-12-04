@@ -17,6 +17,8 @@
 #include "log.h"
 #include "delay.h"
 #include "camera_app.h"
+#include "gui_display.h"
+#include "screen.h"
 
 void signalHandler(int signal);
 void buttonThread();
