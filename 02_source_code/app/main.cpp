@@ -13,6 +13,9 @@ CameraApp sonyGSC(ISO_800, SS1_125, Disable, F4_0, FP1_8);
 // Shared data structure for shooting mechanism
 std::queue<int> shutterQueue;
 
+GUIDisplay guiDisplay;
+Screen appScreen(&guiDisplay, &sonyGSC);
+
 void initializeModules() 
 {
 
@@ -36,9 +39,13 @@ int main()
     // Create a separate thread for camera handling
     std::thread camera_handler(cameraThread);
 
+    // Use appScreen.guiThread as the entry point
+    std::thread gui_handler(&Screen::guiThread, &appScreen);
+
     // Join the threads before exiting
     button_handler.join();
     camera_handler.join();
+    gui_handler.join();
 
     return 0;
 }
