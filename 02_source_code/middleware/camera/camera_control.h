@@ -2,44 +2,27 @@
 #define CAMERA_CONTROL_H
 
 #include <memory>
-#include <libcamera/camera.h>
-#include <libcamera/camera_manager.h>
-#include <libcamera/control_ids.h>
+#include <libcamera/libcamera.h>
 #include <iostream>
-#include <log.h>
-#include <delay.h>
+#include "log.h"
 
 class CameraControl {
 public:
-    // Constructor with default parameters
-    CameraControl(
-                int iso = 800, 
-                int shutterSpeed = 500000, 
-                int exposureMode = 1, 
-                float aperture = 1.8,
-                float flashPower = 1.0);
+    CameraControl(int iso = 800, 
+                  int shutterSpeed = 500000, 
+                  int exposureMode = 1, 
+                  float aperture = 1.8,
+                  float flashPower = 1.0);
     virtual ~CameraControl();
 
-    // Initialize libcamera and set up the camera
     virtual bool initialize();
-
-    // Set camera parameters
     virtual void setISO(int iso);
     virtual void setShutterSpeed(int speed);
     virtual void setExposure(int exposure);
-
-    // Capture an image
     virtual bool captureImage(const std::string &image_path);
-
-    // Release resources
     virtual void release();
 
-private:
-    // Helper: Prepare a control list from current settings.
-    libcamera::ControlList prepareControls();
-    bool openCV_JPG_Conversion(void *mappedMemory, int width, int height, int stride, const std::string &image_path, size_t length);
-    void addMetadata(const std::string &filePath);
-
+protected: // <--- CHANGED FROM PRIVATE TO PROTECTED
     std::unique_ptr<libcamera::CameraManager> cameraManager_;
     std::shared_ptr<libcamera::Camera> camera_;
 
@@ -47,6 +30,11 @@ private:
     int iso_;
     int shutterSpeed_;
     int exposureMode_;
+
+private: 
+    libcamera::ControlList prepareControls();
+    bool openCV_JPG_Conversion(void *mappedMemory, int width, int height, int stride, const std::string &image_path, size_t length);
+    void addMetadata(const std::string &filePath);
 };
 
 #endif // CAMERA_CONTROL_H

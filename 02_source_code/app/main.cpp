@@ -1,112 +1,91 @@
-#include "main.h"
+#include "main.h" 
+#include "gui_display.h" 
+#include "screen.h"      
+#include "photo_management.h" 
 
+#include <iostream>
+#include <thread>
+#include <csignal>
+#include <atomic>
+#include <queue>
+
+// ... Global Variables ...
 Button shutter_btn(SHUTTER_BUTTON, GPIO_INPUT, EN_ACTIVE_HIGH);
-
 std::atomic<bool> keep_running(true);
-
 cameraSetting sonyGSCSettings;
-
-photo_management sonyGSCPhotoMgr;
-
-CameraApp sonyGSC(ISO_800, SS1_125, Disable, F4_0, FP1_8);
-
-// Shared data structure for shooting mechanism
+photo_management sonyGSCPhotoMgr; 
+CameraApp sonyGSC(ISO_800, SS1_125, Disable, F4_0, FP1_8); 
 std::queue<int> shutterQueue;
 
-GUIDisplay guiDisplay;
+GUIDisplay guiDisplay; 
 Screen appScreen(&guiDisplay, &sonyGSC);
 
-void initializeModules() 
-{
-
+void signalHandler(int signum) {
+    keep_running = false;
 }
 
-int main()
-{
-    // Save build time , __DATE__ and __TIME__ macro will be process in preprocesser
-    std::cerr << "Time build : " << __DATE__ << " " << __TIME__ << std::endl; 
-    // Set up the signal handler
-    std::signal(SIGINT, signalHandler);
-
-    // Initialize all modules
-    initializeModules();
-
-    LOG_DBG("Application started!");
-    
-    // Create a separate thread for button handling
-    std::thread button_handler(buttonThread);
-
-    // Create a separate thread for camera handling
-    std::thread camera_handler(cameraThread);
-
-    // Use appScreen.guiThread as the entry point
-    std::thread gui_handler(&Screen::guiThread, &appScreen);
-
-    // Join the threads before exiting
-    button_handler.join();
-    camera_handler.join();
-    gui_handler.join();
-
-    return 0;
-}
+void initializeModules() {}
 
 void buttonThread()
 {
     LOG_DBG(":::::::::::: <--- BUTTON HANDLER START ---> ::::::::::::");
-    
     static uint32_t currnt_shot = 0;
     while (keep_running)
     {
         shutter_btn.updateButtonState();
         shutter_btn.updateShotCounter();
-        ButtonState state = shutter_btn.getState();
-
-        // Detect single press
         if ((shutter_btn.getShotCount() - currnt_shot) == 1)
         {
             currnt_shot = shutter_btn.getShotCount();
-            LOG_DBG("[LOG_DEBUG] get currnt shot: ", currnt_shot);
             shutterQueue.push(currnt_shot);
-            LOG_DBG("[LOG_DEBUG] finish push to queue: ", shutterQueue.size());
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
 
 void cameraThread()
 {
-    LOG_DBG(":::::::::::: <--- CAMERA OPERATING START ---> ::::::::::::");
-
-    while (keep_running)
+    LOG_STT(":::::::::::: <--- CAMERA OPERATING START ---> ::::::::::::");
+    while(keep_running)
     {
-        if (!shutterQueue.empty())
+        if(!shutterQueue.empty())
         {
-            LOG_DBG("[LOG_DEBUG] camera check queue not empty");
-            int shotCount = shutterQueue.front();
-            
-            LOG_DBG("[LOG_DEBUG] pop queue");
+            int signal_shutter = shutterQueue.front();
             shutterQueue.pop();
-            LOG_DBG("[LOG_DEBUG] finish pop to queue: ", shutterQueue.size());
             
-            //get ISO value
-            sonyGSC.setISO(sonyGSCSettings.getValueISO());
-            //get SS value
-            sonyGSC.setShutterSpeed(sonyGSCSettings.getValueShutterSpeed());
-            
-            //call capture image
-            LOG_DBG("[LOG_DEBUG] start capture image");
-            sonyGSC.captureImage(sonyGSCPhotoMgr.getpathpicture());
-            LOG_DBG("[LOG_DEBUG] finish capture image");
-            
-            LOG_DBG("[LOG_DEBUG] waiting for the next pressing");
+            if(signal_shutter > 0)
+            {
+                std::string path = sonyGSCPhotoMgr.getpathpicture();
+                LOG_STT("Taking photo: ", path);
+                
+                // 1. STOP
+                sonyGSC.stopVideoStream();
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                
+                // 2. CAPTURE
+                sonyGSC.captureImage(path);
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                
+                // 3. RESTART
+                sonyGSC.startVideoStream(640, 480);
+            }
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
 
-void signalHandler(int signal)
+int main()
 {
-    if (signal == SIGINT)
-    {
-        LOG_DBG("Ctrl+C detected. Cleaning up and exiting...");
-        keep_running = false;
-    }
+    std::signal(SIGINT, signalHandler);
+    initializeModules();
+    
+    std::thread button_handler(buttonThread);
+    std::thread camera_handler(cameraThread);
+    std::thread gui_handler(&Screen::guiThread, &appScreen);
+
+    button_handler.join();
+    camera_handler.join();
+    gui_handler.join();
+
+    return 0;
 }
