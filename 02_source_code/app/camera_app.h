@@ -4,6 +4,7 @@
 #include "camera_control.h"
 #include "cameraSetting.h" 
 #include <opencv2/opencv.hpp>
+#include <vector>
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
@@ -41,19 +42,22 @@ public:
     void release();
 
 private:
-    static CameraApp* instance_; 
-
     // Core Streaming Resources
     std::unique_ptr<libcamera::CameraConfiguration> previewConfig_;
-    
-    // FIX: Must be a raw pointer.
     libcamera::Stream *previewStream_ = nullptr; 
     
-    // Synchronization resources
+    // --- ADDED: List to store initial requests for reuse ---
+    std::vector<libcamera::Request*> requests_to_recycle_;
+    // -----------------------------------------------------
+
+    // Synchronization resources for the frame buffer
     cv::Mat currentPreviewFrame_; 
     std::mutex videoMutex_;
     std::condition_variable videoCv_;
     std::atomic<bool> streamRunning_ = false;
+
+    // Singleton instance pointer needed for the static libcamera callback
+    static CameraApp* instance_;
 };
 
 #endif //_CAMERA_APP_H_
