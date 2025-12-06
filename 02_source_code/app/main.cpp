@@ -9,7 +9,7 @@
 #include <atomic>
 #include <queue>
 
-// ... Global Variables ...
+// --- Global Variables ---
 Button shutter_btn(SHUTTER_BUTTON, GPIO_INPUT, EN_ACTIVE_HIGH);
 std::atomic<bool> keep_running(true);
 cameraSetting sonyGSCSettings;
@@ -43,6 +43,7 @@ void buttonThread()
     }
 }
 
+// --- CAMERA THREAD (Aggressive Delays) ---
 void cameraThread()
 {
     LOG_STT(":::::::::::: <--- CAMERA OPERATING START ---> ::::::::::::");
@@ -58,15 +59,17 @@ void cameraThread()
                 std::string path = sonyGSCPhotoMgr.getpathpicture();
                 LOG_STT("Taking photo: ", path);
                 
-                // 1. STOP
+                // 1. STOP STREAM
                 sonyGSC.stopVideoStream();
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                // FIX: Increase delay to 2000ms (2.0 seconds)
+                std::this_thread::sleep_for(std::chrono::milliseconds(2000));
                 
                 // 2. CAPTURE
                 sonyGSC.captureImage(path);
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                // FIX: Increase delay to 2000ms (2.0 seconds)
+                std::this_thread::sleep_for(std::chrono::milliseconds(2000));
                 
-                // 3. RESTART
+                // 3. RESTART STREAM
                 sonyGSC.startVideoStream(640, 480);
             }
         }
