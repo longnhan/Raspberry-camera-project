@@ -103,7 +103,7 @@ bool CameraApp::startVideoStream(int width, int height) {
     libcamera::StreamConfiguration &streamConfig = previewConfig_->at(0);
     streamConfig.size = { 640, 480 }; 
     streamConfig.pixelFormat = libcamera::formats::NV12; 
-    streamConfig.bufferCount = 6; // Increased to 6 to absorb startup jitter
+    streamConfig.bufferCount = 4; // Back to 4 for stability
 
     // 3. Configure
     previewConfig_->validate(); 
@@ -165,18 +165,27 @@ bool CameraApp::startVideoStream(int width, int height) {
     }
     LOG_DBG("[Stream] Camera started.");
 
-    // FIX 2: REMOVE DELAY
-    // We queue immediately. Waiting 300ms might be causing the driver to timeout 
-    // and drop the stream before we even send the first buffer.
-    
-    // 9. Queue Requests
+    // 9. Slow-Start Queueing (Staggered)
+    // Drip-feed requests to prevent ISP pipeline stall
     streamRunning_ = true;
     request_count_for_stop_wait = requests_to_recycle_.size(); 
     
-    for (libcamera::Request *request : requests_to_recycle_) {
-        camera_->queueRequest(request);
+    if (requests_to_recycle_.size() >= 1) {
+        LOG_DBG("[Stream] Queueing Request 1/4");
+        camera_->queueRequest(requests_to_recycle_[0]);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Delay
     }
-    LOG_DBG("[Stream] Requests queued immediately.");
+    
+    if (requests_to_recycle_.size() >= 2) {
+        LOG_DBG("[Stream] Queueing Request 2/4");
+        camera_->queueRequest(requests_to_recycle_[1]);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Delay
+    }
+
+    LOG_DBG("[Stream] Queueing remaining requests.");
+    for (size_t i = 2; i < requests_to_recycle_.size(); ++i) {
+        camera_->queueRequest(requests_to_recycle_[i]);
+    }
     
     return true;
 }
@@ -248,6 +257,10 @@ void CameraApp::requestComplete(libcamera::Request *request) {
         }
         return; 
     }
+
+    // Debug log to confirm frame arrival (Only for debugging first frame issues)
+    // static int frame_debug_counter = 0;
+    // if (frame_debug_counter < 5) { LOG_DBG("[Callback] Frame Received!"); frame_debug_counter++; }
 
     const libcamera::FrameBuffer *buffer = request->buffers().at(self->previewStream_);
     
