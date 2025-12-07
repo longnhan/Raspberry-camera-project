@@ -1,63 +1,63 @@
-#ifndef _CAMERA_APP_H_
-#define _CAMERA_APP_H_
+#ifndef CAMERA_APP_H
+#define CAMERA_APP_H
 
-#include "camera_control.h"
+#include "camera_control.h" // Fixed include filename
 #include "cameraSetting.h" 
 #include <opencv2/opencv.hpp>
-#include <vector>
+#include <libcamera/camera.h> 
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
-#include <queue> 
-#include "log.h" 
+#include <vector>
+#include <memory> 
 
-class CameraApp : public CameraControl
-{
+class CameraApp : public CameraControl {
 public:
-    CameraApp(ISO iso = ISO(), 
-              ShutterSpeed shuttleSpeed = SHUTTLE_SPEED(),
-              ExposureMode exposureMode = EXPOSURE_MODE(),
-              Aperture aperture = APERTURE(),
-              FlashPower flashPower = FLASH_POWER());
-    
-    virtual ~CameraApp();
-
-    bool initialize();
-
-    // --- Core Streaming Methods ---
-    bool startVideoStream(int width, int height); 
-    void stopVideoStream();
-    
-    bool getLatestPreviewFrame(cv::Mat &outputFrame);
-    
-    // Libcamera callback
-    static void requestComplete(libcamera::Request *request);
     static CameraApp* getInstance();
+    
+    CameraApp(ISO iso, ShutterSpeed shuttleSpeed, ExposureMode exposureMode, Aperture aperture, FlashPower flashPower);
+    ~CameraApp();
 
-    // Wrappers
-    void setISO(int iso);
-    void setShutterSpeed(int shutterSpeed);
-    void setExposure(int exposureMode);
-    bool captureImage(const std::string &image_path);
-    void release();
+    bool initialize() override;
+    void setISO(int iso) override;
+    void setShutterSpeed(int shutterSpeed) override;
+    void setExposure(int exposureMode) override;
+    
+    // Capture Image (Parallel Mode)
+    bool captureImage(const std::string &image_path) override;
+    
+    // Video Streaming
+    bool startVideoStream(int width, int height);
+    void stopVideoStream();
+    bool getLatestPreviewFrame(cv::Mat &outputFrame);
+
+    void release() override; // Helper to force release
+
+    // Internal Callback
+    static void requestComplete(libcamera::Request *request);
 
 private:
-    // Core Streaming Resources
-    std::unique_ptr<libcamera::CameraConfiguration> previewConfig_;
-    libcamera::Stream *previewStream_ = nullptr; 
+    static CameraApp* instance_;
     
-    // --- ADDED: List to store initial requests for reuse ---
-    std::vector<libcamera::Request*> requests_to_recycle_;
-    // -----------------------------------------------------
+    // Stream State
+    bool streamRunning_ = false;
+    
+    // Configuration
+    std::unique_ptr<libcamera::CameraConfiguration> previewConfig_;
+    
+    std::vector<libcamera::Request *> requests_to_recycle_;
+    
+    // Dual Streams
+    libcamera::Stream *previewStream_ = nullptr; // Stream 0 (Video)
+    libcamera::Stream *stillStream_ = nullptr;   // Stream 1 (Photo)
+    
+    // Capture State
+    std::atomic<bool> take_picture_request_ = false; 
 
-    // Synchronization resources for the frame buffer
-    cv::Mat currentPreviewFrame_; 
+    // Frame Sync
+    cv::Mat currentPreviewFrame_;
     std::mutex videoMutex_;
     std::condition_variable videoCv_;
-    std::atomic<bool> streamRunning_ = false;
-
-    // Singleton instance pointer needed for the static libcamera callback
-    static CameraApp* instance_;
 };
 
-#endif //_CAMERA_APP_H_
+#endif // CAMERA_APP_H

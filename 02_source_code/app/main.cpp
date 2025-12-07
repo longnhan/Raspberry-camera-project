@@ -22,6 +22,7 @@ Screen appScreen(&guiDisplay, &sonyGSC);
 
 void signalHandler(int signum) {
     keep_running = false;
+    // Wake up threads if they are sleeping (optional improvement)
 }
 
 void initializeModules() {}
@@ -43,10 +44,19 @@ void buttonThread()
     }
 }
 
-// --- CAMERA THREAD (Aggressive Delays) ---
+// --- CAMERA THREAD (New Parallel Architecture) ---
 void cameraThread()
 {
     LOG_STT(":::::::::::: <--- CAMERA OPERATING START ---> ::::::::::::");
+    
+    // 1. START STREAM ONCE
+    // We start the dual-pipeline immediately. It stays running the entire time.
+    if (!sonyGSC.startVideoStream(640, 480)) {
+        LOG_ERR("Failed to start camera stream!");
+        keep_running = false; // Exit if camera fails
+        return;
+    }
+
     while(keep_running)
     {
         if(!shutterQueue.empty())
@@ -59,22 +69,25 @@ void cameraThread()
                 std::string path = sonyGSCPhotoMgr.getpathpicture();
                 LOG_STT("Taking photo: ", path);
                 
-                // 1. STOP STREAM
-                sonyGSC.stopVideoStream();
-                // FIX: Increase delay to 2000ms (2.0 seconds)
-                std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+                // 2. CAPTURE IN PARALLEL
+                // We do NOT stop the video. We just request a high-res frame.
+                // The video feed will continue uninterrupted.
+                if (sonyGSC.captureImage(path)) {
+                    LOG_STT("Photo saved successfully.");
+                } else {
+                    LOG_ERR("Photo capture failed.");
+                }
                 
-                // 2. CAPTURE
-                sonyGSC.captureImage(path);
-                // FIX: Increase delay to 2000ms (2.0 seconds)
-                std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-                
-                // 3. RESTART STREAM
-                sonyGSC.startVideoStream(640, 480);
+                // Optional: Tiny delay just to prevent button spamming
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+
+    // 3. CLEAN SHUTDOWN
+    sonyGSC.stopVideoStream();
+    LOG_STT("Camera thread stopped.");
 }
 
 int main()
