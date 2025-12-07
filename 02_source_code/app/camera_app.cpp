@@ -53,13 +53,13 @@ void CameraApp::release() {
 }
 
 // =================================================================================
-// --- PARALLEL CAPTURE LOGIC ---
+// --- CAPTURE LOGIC ---
 // =================================================================================
 
 bool CameraApp::captureImage(const std::string &image_path) { 
     if (!camera_ || !streamRunning_) return false;
     
-    LOG_DBG("[App] Capture Requested (Parallel Mode).");
+    LOG_DBG("[App] Capture Requested.");
     
     {
         std::lock_guard<std::mutex> lock(capture_mutex);
@@ -68,20 +68,19 @@ bool CameraApp::captureImage(const std::string &image_path) {
         take_picture_request_ = true; 
     }
     
-    // Wait for the callback to actually get the frame and save it
     std::unique_lock<std::mutex> lock(capture_mutex);
     if (capture_cv.wait_for(lock, std::chrono::milliseconds(3000), []{ return capture_finished; })) {
         LOG_DBG("[App] Capture Success!");
         return true;
     } else {
-        LOG_ERR("[App] Capture Timeout! (Callback didn't process request)");
+        LOG_ERR("[App] Capture Timeout!");
         take_picture_request_ = false; 
         return false;
     }
 }
 
 // =================================================================================
-// --- DUAL-STREAM SETUP ---
+// --- DUAL-STREAM SETUP (Full FOV Fix) ---
 // =================================================================================
 
 static std::unique_ptr<libcamera::FrameBufferAllocator> g_allocator;
@@ -99,7 +98,6 @@ bool CameraApp::startVideoStream(int width, int height) {
         return false;
     }
 
-    // 1. Generate Config for TWO Roles
     std::vector<libcamera::StreamRole> roles = { 
         libcamera::StreamRole::Viewfinder,   // Stream 0: Video
         libcamera::StreamRole::StillCapture  // Stream 1: Photo
@@ -111,19 +109,21 @@ bool CameraApp::startVideoStream(int width, int height) {
         return false;
     }
 
-    // 2. Configure Stream 0 (Video)
+    // --- VIDEO STREAM: RESOLUTION FIX ---
+    // Use 728x544 (Half of 1456x1088). 
+    // This triggers 2x2 Binning Mode = FULL FIELD OF VIEW (Not zoomed).
+    // YUYV format ensures colors are correct.
     libcamera::StreamConfiguration &videoConfig = previewConfig_->at(0);
-    videoConfig.size = { 640, 480 }; 
-    videoConfig.pixelFormat = libcamera::formats::NV12; 
+    videoConfig.size = { 728, 544 }; 
+    videoConfig.pixelFormat = libcamera::formats::YUYV; 
     videoConfig.bufferCount = 4;
 
-    // 3. Configure Stream 1 (Photo)
+    // --- PHOTO STREAM ---
     libcamera::StreamConfiguration &stillConfig = previewConfig_->at(1);
     stillConfig.size = { 1456, 1088 }; 
     stillConfig.pixelFormat = libcamera::formats::NV12; 
     stillConfig.bufferCount = 2; 
 
-    // 4. Validate & Configure
     previewConfig_->validate(); 
     if (camera_->configure(previewConfig_.get()) < 0) {
         LOG_ERR("[Stream] Configure failed.");
@@ -133,12 +133,11 @@ bool CameraApp::startVideoStream(int width, int height) {
     previewStream_ = videoConfig.stream();
     stillStream_   = stillConfig.stream();
 
-    // 5. Allocate Buffers
     g_allocator = std::make_unique<libcamera::FrameBufferAllocator>(camera_);
     if (g_allocator->allocate(previewStream_) < 0) return false;
     if (g_allocator->allocate(stillStream_) < 0) return false;
 
-    // 6. Map Memory (Priming)
+    // Map Memory
     auto map_buffers = [](libcamera::Stream *stream) {
         const auto &buffers = g_allocator->buffers(stream);
         for (const auto &buffer : buffers) {
@@ -154,7 +153,7 @@ bool CameraApp::startVideoStream(int width, int height) {
     map_buffers(previewStream_);
     map_buffers(stillStream_);
 
-    // 7. Prepare Still Buffer Queue
+    // Prepare Queue
     {
         std::lock_guard<std::mutex> lock(buffer_queue_mutex);
         while (!free_still_buffers.empty()) free_still_buffers.pop(); 
@@ -163,7 +162,7 @@ bool CameraApp::startVideoStream(int width, int height) {
         }
     }
 
-    // 8. Create Requests (Video Only initially)
+    // Create Requests
     for (auto *req : requests_to_recycle_) delete req;
     requests_to_recycle_.clear();
 
@@ -174,7 +173,7 @@ bool CameraApp::startVideoStream(int width, int height) {
         requests_to_recycle_.push_back(request);
     }
 
-    // 9. Start
+    // Start
     camera_->requestCompleted.disconnect(CameraApp::requestComplete); 
     camera_->requestCompleted.connect(CameraApp::requestComplete);
 
@@ -187,7 +186,7 @@ bool CameraApp::startVideoStream(int width, int height) {
         camera_->queueRequest(request);
     }
     
-    LOG_DBG("[Stream] Dual-Pipeline Started.");
+    LOG_DBG("[Stream] Dual-Pipeline Started (YUYV 728x544).");
     return true;
 }
 
@@ -215,17 +214,16 @@ bool CameraApp::getLatestPreviewFrame(cv::Mat &outputFrame) {
 }
 
 // =================================================================================
-// --- DUAL-STREAM CALLBACK (FINAL FIX) ---
+// --- CALLBACK (FULL SCREEN RESIZE) ---
 // =================================================================================
 
 void CameraApp::requestComplete(libcamera::Request *request) {
     CameraApp *self = CameraApp::getInstance();
     if (!self || !self->streamRunning_ || request->status() == libcamera::Request::RequestCancelled) return;
 
-    // --- 1. HANDLE VIDEO STREAM (Display Logic Reverted to Working Version) ---
-    // We capture the buffer pointer first because we will need to re-add it later
     libcamera::FrameBuffer *videoBuffer = nullptr;
 
+    // --- 1. HANDLE VIDEO STREAM (YUYV) ---
     if (request->buffers().find(self->previewStream_) != request->buffers().end()) {
         videoBuffer = request->buffers().at(self->previewStream_);
         
@@ -233,7 +231,6 @@ void CameraApp::requestComplete(libcamera::Request *request) {
         size_t totalLength = 0;
         for (const auto &plane : videoBuffer->planes()) totalLength += plane.length;
 
-        // Using PROT_READ for viewing
         void *map = mmap(NULL, totalLength, PROT_READ, MAP_SHARED, fd, 0);
         
         if (map != MAP_FAILED) {
@@ -242,11 +239,15 @@ void CameraApp::requestComplete(libcamera::Request *request) {
             int h = config.size.height;
             int stride = config.stride;
 
-            // EXACT WORKING LOGIC REVERT
-            cv::Mat nv12Mat(h + h / 2, w, CV_8UC1, map, stride);
-            cv::Mat bgrMat;
-            cv::cvtColor(nv12Mat, bgrMat, cv::COLOR_YUV2BGR_NV12);
+            // 1. Create Mat from YUYV Data
+            cv::Mat yuyvMat(h, w, CV_8UC2, map, stride);
             
+            // 2. Convert to BGR
+            cv::Mat bgrMat;
+            cv::cvtColor(yuyvMat, bgrMat, cv::COLOR_YUV2BGR_YUYV);
+            
+            // 3. Resize to 480x320 (Full Screen)
+            // Note: This will stretch slightly (4:3 -> 3:2), but it fills the screen perfectly.
             cv::Mat resizedMat;
             cv::resize(bgrMat, resizedMat, cv::Size(480, 320)); 
 
@@ -259,7 +260,7 @@ void CameraApp::requestComplete(libcamera::Request *request) {
         }
     }
 
-    // --- 2. HANDLE STILL STREAM (Photo Logic) ---
+    // --- 2. HANDLE STILL STREAM (NV12) ---
     if (request->buffers().find(self->stillStream_) != request->buffers().end()) {
         LOG_DBG("[Callback] High-Res Frame Received!");
         const libcamera::FrameBuffer *buffer = request->buffers().at(self->stillStream_);
@@ -272,37 +273,39 @@ void CameraApp::requestComplete(libcamera::Request *request) {
         
         if (map != MAP_FAILED) {
             const libcamera::StreamConfiguration &config = self->stillStream_->configuration();
-            int h = config.size.height;
             int w = config.size.width;
+            int h = config.size.height;
             int stride = config.stride;
             size_t required_size = (size_t)(h + h / 2) * stride;
 
             if (totalLength >= required_size) {
-                cv::Mat nv12(h + h / 2, w, CV_8UC1, map, stride);
-                cv::Mat bgr;
-                cv::cvtColor(nv12, bgr, cv::COLOR_YUV2BGR_NV12);
-                
-                std::string path;
-                {
-                    std::lock_guard<std::mutex> lock(capture_mutex);
-                    path = g_current_image_path;
-                }
-                
-                if (!path.empty()) {
-                    cv::imwrite(path, bgr);
-                    LOG_DBG("[Callback] Saved to ", path);
+                try {
+                    cv::Mat nv12(h + h / 2, w, CV_8UC1, map, stride);
+                    cv::Mat bgr;
+                    cv::cvtColor(nv12, bgr, cv::COLOR_YUV2BGR_NV12);
+                    
+                    std::string path;
+                    {
+                        std::lock_guard<std::mutex> lock(capture_mutex);
+                        path = g_current_image_path;
+                    }
+                    
+                    if (!path.empty()) {
+                        cv::imwrite(path, bgr);
+                        LOG_DBG("[Callback] Saved to ", path);
+                    }
+                } catch (...) {
+                    LOG_ERR("[Callback] Error converting image");
                 }
             }
             munmap(map, totalLength);
         }
 
-        // Return buffer to queue
         {
             std::lock_guard<std::mutex> lock(buffer_queue_mutex);
             free_still_buffers.push((libcamera::FrameBuffer*)buffer);
         }
         
-        // Notify done
         {
             std::lock_guard<std::mutex> lock(capture_mutex);
             capture_finished = true;
@@ -310,17 +313,14 @@ void CameraApp::requestComplete(libcamera::Request *request) {
         capture_cv.notify_all();
     }
 
-    // --- 3. RE-QUEUE (FIXED INFINITE LOOP & COMPILATION ERROR) ---
+    // --- 3. RE-QUEUE ---
     if (self->streamRunning_) {
-        // FIX: Use integer 0 to clear flags. This is the fix for the build error.
         request->reuse(libcamera::Request::ReuseFlag(0));
         
-        // 1. Always add the Video Buffer back
         if (videoBuffer) {
             request->addBuffer(self->previewStream_, videoBuffer);
         }
 
-        // 2. Only add Still Buffer if specifically requested
         if (self->take_picture_request_) {
             std::lock_guard<std::mutex> lock(buffer_queue_mutex);
             if (!free_still_buffers.empty()) {
@@ -328,8 +328,8 @@ void CameraApp::requestComplete(libcamera::Request *request) {
                 free_still_buffers.pop();
                 
                 if (request->addBuffer(self->stillStream_, stillBuf) == 0) {
-                    LOG_DBG("[Callback] Attached Still Buffer to Request.");
-                    self->take_picture_request_ = false; // Reset flag immediately
+                    LOG_DBG("[Callback] Attached Still Buffer.");
+                    self->take_picture_request_ = false; 
                 }
             }
         }
