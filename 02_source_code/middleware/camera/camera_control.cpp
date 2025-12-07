@@ -193,8 +193,8 @@ bool CameraControl::captureImage(const std::string &image_path)
     }
     LOG_DBG("[LOG_INFO] Request queued");
 
-    sleep(3); // Wait 5s for 1/2s exposure
-    LOG_DBG("[LOG_INFO] Waiting 5 seconds for capture to complete");
+    DELAY_MS(300);
+    LOG_DBG("[LOG_INFO] Waiting for a short delay for capture to complete");
 
     camera_->stop();
     LOG_DBG("[LOG_INFO] Camera stopped");

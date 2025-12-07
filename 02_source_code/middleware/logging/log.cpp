@@ -158,3 +158,10 @@ void logger::writeLogIpm(logLevel logLevel_,std::string fileName, int row, std::
     return;                  
 }
 
+void logger::printTimestampMs() 
+{
+    auto now = std::chrono::system_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                  now.time_since_epoch()).count();
+    std::cout << "[" << ms << " ms] ";
+}

@@ -7,6 +7,7 @@
 #include <libcamera/control_ids.h>
 #include <iostream>
 #include <log.h>
+#include <delay.h>
 
 class CameraControl {
 public:

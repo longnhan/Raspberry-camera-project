@@ -6,6 +6,7 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <delay.h>
 
 constexpr int EN_ACTIVE_HIGH  = GPIO_ACTIVE_H;
 constexpr int EN_ACTIVE_LOW  = GPIO_ACTIVE_L;

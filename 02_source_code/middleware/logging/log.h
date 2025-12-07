@@ -12,7 +12,7 @@
 #include <cstdlib>
 #include <sys/stat.h> // for function mkdir 
 // Fix path log file
-#define LOG_DIR       (std::string(std::getenv("HOME")).append("/log_file"))
+#define LOG_DIR       (std::string("/home/pi").append("/log_file"))
 #define LOG_SUB_DIR   (LOG_DIR.append("/").append(getDirLog()))
 #define ERRORFILE     (LOG_SUB_DIR.append("/log_error.csv"))
 #define DEBUGFILE     (LOG_SUB_DIR.append("/log_debug.csv"))
@@ -30,6 +30,8 @@
 
 #define LOG_ERR(...)  (logger::getInstance()->writeLog(logLevel::Error, __FILE__, __LINE__, __VA_ARGS__))
 #define LOG_STT(...)  (logger::getInstance()->writeLog(logLevel::Status, __FILE__, __LINE__, __VA_ARGS__))
+
+#define LOG_TIMESTAMP_MS(...) (logger::getInstance()->printTimestampMs())
 /***************************************/
 // User reference
 // Use macro LOG_ERR to write log error
@@ -98,6 +100,8 @@ private:
         writeLogIpm(logLevel_,fileName,row,os.str());
     }   
     static logger* getInstance();
+
+    void printTimestampMs();
  
 };
  
