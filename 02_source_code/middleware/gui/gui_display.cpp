@@ -27,13 +27,15 @@ bool GUIDisplay::initialize(int width, int height) {
         return false;
     }
 
-    // Create window sized to the requested resolution
+    // FIX: Use SDL_WINDOW_FULLSCREEN_DESKTOP along with BORDERLESS.
+    // This forces the window to occupy the entire display area (480x320), 
+    // overriding window managers or desktop environment borders.
     window_ = SDL_CreateWindow("Rudo Camera", 
                                SDL_WINDOWPOS_UNDEFINED, 
                                SDL_WINDOWPOS_UNDEFINED, 
                                width_, 
                                height_, 
-                               SDL_WINDOW_SHOWN);
+                               SDL_WINDOW_SHOWN | SDL_WINDOW_BORDERLESS | SDL_WINDOW_FULLSCREEN_DESKTOP); // <-- AGGRESSIVE FLAGS
     if (!window_) {
         std::cerr << "[GUIDisplay] Window could not be created! Error: " << SDL_GetError() << std::endl;
         return false;
@@ -56,6 +58,9 @@ bool GUIDisplay::initialize(int width, int height) {
         std::cerr << "[GUIDisplay] Texture could not be created! Error: " << SDL_GetError() << std::endl;
         return false;
     }
+    
+    // Hide mouse cursor
+    SDL_ShowCursor(SDL_DISABLE);
 
     std::cout << "[GUIDisplay] Initialized at " << width_ << "x" << height_ << "." << std::endl;
     return true;
@@ -63,6 +68,13 @@ bool GUIDisplay::initialize(int width, int height) {
 
 void GUIDisplay::renderFrame(const cv::Mat &frame) {
     if (!renderer_ || !videoTexture_ || frame.empty()) {
+        return;
+    }
+    
+    // Check if the frame size matches the expected size before updating the texture
+    if (frame.cols != width_ || frame.rows != height_) {
+        std::cerr << "[GUIDisplay] ERROR: Frame size (" << frame.cols << "x" << frame.rows 
+                  << ") does not match expected texture size (" << width_ << "x" << height_ << ")! Check CameraApp resize logic." << std::endl;
         return;
     }
     
@@ -76,7 +88,7 @@ void GUIDisplay::renderFrame(const cv::Mat &frame) {
     SDL_SetRenderDrawColor(renderer_, 0x00, 0x00, 0x00, 0xFF);
     SDL_RenderClear(renderer_);
 
-    // Copy texture to full screen
+    // Copy texture to full screen (NULL, NULL ensures max stretch)
     SDL_RenderCopy(renderer_, videoTexture_, NULL, NULL); 
 }
 
