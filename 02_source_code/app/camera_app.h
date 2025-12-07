@@ -1,7 +1,7 @@
 #ifndef CAMERA_APP_H
 #define CAMERA_APP_H
 
-#include "camera_control.h" // Fixed include filename
+#include "camera_control.h"
 #include "cameraSetting.h" 
 #include <opencv2/opencv.hpp>
 #include <libcamera/camera.h> 
@@ -23,7 +23,7 @@ public:
     void setShutterSpeed(int shutterSpeed) override;
     void setExposure(int exposureMode) override;
     
-    // Capture Image (Parallel Mode)
+    // Capture Image
     bool captureImage(const std::string &image_path) override;
     
     // Video Streaming

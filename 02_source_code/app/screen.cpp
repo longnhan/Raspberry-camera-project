@@ -4,7 +4,6 @@
 #include "gui_display.h" 
 #include <iostream>
 
-// Defined in main.cpp
 extern std::atomic<bool> keep_running; 
 
 Screen::Screen(GUIDisplay* display, CameraApp* app) 
@@ -12,13 +11,17 @@ Screen::Screen(GUIDisplay* display, CameraApp* app)
 {
 }
 
-void Screen::handleSDLEvents(SDL_Event &event) {
-    if (event.type == SDL_QUIT) {
+void Screen::handleSDLEvents(SDL_Event &event)
+{
+    if (event.type == SDL_QUIT)
+    {
         LOG_STT("SDL Quit signal received.");
         keep_running = false;
     }
-    else if (event.type == SDL_KEYDOWN) {
-        if (event.key.keysym.sym == SDLK_ESCAPE) {
+    else if (event.type == SDL_KEYDOWN)
+    {
+        if (event.key.keysym.sym == SDLK_ESCAPE)
+        {
              keep_running = false;
         }
     }
@@ -26,15 +29,15 @@ void Screen::handleSDLEvents(SDL_Event &event) {
 
 void Screen::guiThread()
 {
-    // FIX: Pass the specific screen resolution here (App Layer configuration)
-    // 480x320 for Waveshare 3.5" LCD
-    if (!guiDisplay_->initialize(480, 320)) {
+    if (!guiDisplay_->initialize(480, 320))
+    {
         LOG_ERR("[LOG_ERROR] GUI initialization failed. Cannot start rendering loop.");
         keep_running = false;
         return;
     }
 
-    if (!cameraApp_->startVideoStream(480, 320)) { 
+    if (!cameraApp_->startVideoStream(480, 320))
+    { 
         LOG_ERR("Failed to start video stream.");
         keep_running = false;
         return;
@@ -44,11 +47,13 @@ void Screen::guiThread()
     SDL_Event event;
     
     while (keep_running) {
-        while (SDL_PollEvent(&event)) {
+        while (SDL_PollEvent(&event))
+        {
             handleSDLEvents(event);
         }
 
-        if (cameraApp_->getLatestPreviewFrame(previewFrame)) {
+        if (cameraApp_->getLatestPreviewFrame(previewFrame))
+        {
             guiDisplay_->renderFrame(previewFrame); 
             guiDisplay_->drawUIOverlays(); 
             guiDisplay_->present();

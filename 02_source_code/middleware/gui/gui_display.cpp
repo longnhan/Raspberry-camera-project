@@ -3,47 +3,52 @@
 
 GUIDisplay::GUIDisplay() = default;
 
-GUIDisplay::~GUIDisplay() {
-    if (videoTexture_) {
+GUIDisplay::~GUIDisplay()
+{
+    if (videoTexture_)
+    {
         SDL_DestroyTexture(videoTexture_);
     }
-    if (renderer_) {
+    if (renderer_)
+    {
         SDL_DestroyRenderer(renderer_);
     }
-    if (window_) {
+    if (window_)
+    {
         SDL_DestroyWindow(window_);
     }
     SDL_Quit();
     std::cout << "[GUIDisplay] Cleaned up SDL resources." << std::endl;
 }
 
-bool GUIDisplay::initialize(int width, int height) {
+bool GUIDisplay::initialize(int width, int height)
+{
     // Store configuration
     width_ = width;
     height_ = height;
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0)
+    {
         std::cerr << "[GUIDisplay] SDL could not initialize! Error: " << SDL_GetError() << std::endl;
         return false;
     }
 
-    // FIX: Use SDL_WINDOW_FULLSCREEN_DESKTOP along with BORDERLESS.
-    // This forces the window to occupy the entire display area (480x320), 
-    // overriding window managers or desktop environment borders.
     window_ = SDL_CreateWindow("Rudo Camera", 
                                SDL_WINDOWPOS_UNDEFINED, 
                                SDL_WINDOWPOS_UNDEFINED, 
                                width_, 
                                height_, 
                                SDL_WINDOW_SHOWN | SDL_WINDOW_BORDERLESS | SDL_WINDOW_FULLSCREEN_DESKTOP); // <-- AGGRESSIVE FLAGS
-    if (!window_) {
+    if (!window_)
+    {
         std::cerr << "[GUIDisplay] Window could not be created! Error: " << SDL_GetError() << std::endl;
         return false;
     }
 
     // Create hardware-accelerated renderer
     renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!renderer_) {
+    if (!renderer_)
+    {
         std::cerr << "[GUIDisplay] Renderer could not be created! Error: " << SDL_GetError() << std::endl;
         return false;
     }
@@ -54,7 +59,8 @@ bool GUIDisplay::initialize(int width, int height) {
                                        SDL_TEXTUREACCESS_STREAMING, 
                                        width_, 
                                        height_);
-    if (!videoTexture_) {
+    if (!videoTexture_)
+    {
         std::cerr << "[GUIDisplay] Texture could not be created! Error: " << SDL_GetError() << std::endl;
         return false;
     }
@@ -66,13 +72,16 @@ bool GUIDisplay::initialize(int width, int height) {
     return true;
 }
 
-void GUIDisplay::renderFrame(const cv::Mat &frame) {
-    if (!renderer_ || !videoTexture_ || frame.empty()) {
+void GUIDisplay::renderFrame(const cv::Mat &frame)
+{
+    if (!renderer_ || !videoTexture_ || frame.empty())
+    {
         return;
     }
     
     // Check if the frame size matches the expected size before updating the texture
-    if (frame.cols != width_ || frame.rows != height_) {
+    if (frame.cols != width_ || frame.rows != height_)
+    {
         std::cerr << "[GUIDisplay] ERROR: Frame size (" << frame.cols << "x" << frame.rows 
                   << ") does not match expected texture size (" << width_ << "x" << height_ << ")! Check CameraApp resize logic." << std::endl;
         return;
@@ -92,12 +101,12 @@ void GUIDisplay::renderFrame(const cv::Mat &frame) {
     SDL_RenderCopy(renderer_, videoTexture_, NULL, NULL); 
 }
 
-void GUIDisplay::drawUIOverlays() {
-    // UI logic
-}
+void GUIDisplay::drawUIOverlays() {}
 
-void GUIDisplay::present() {
-    if (renderer_) {
+void GUIDisplay::present() 
+{
+    if (renderer_)
+    {
         SDL_RenderPresent(renderer_); 
     }
 }

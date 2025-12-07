@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <fstream>
 #include <sys/mman.h>
-#include <thread> // Required for std::this_thread::sleep_for
-#include <chrono> // Required for std::chrono::milliseconds
+#include <thread>
+#include <chrono>
 
 #include <opencv2/opencv.hpp>
 
@@ -26,8 +26,6 @@ CameraControl::CameraControl(
 {
     if (!initialize())
     {
-        // In simple embedded apps, throwing in constructor can be risky if not caught.
-        // Consider logging error instead, but keeping existing logic for now.
         std::cerr << "Camera initialization failed in constructor" << std::endl;
     }
 }
@@ -171,8 +169,6 @@ bool CameraControl::captureImage(const std::string &image_path)
         return false;
     }
 
-    // --- FIX: Use standard C++ sleep instead of DELAY_MS ---
-    // Wait for the exposure (300ms is usually sufficient for capture to complete)
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
     // -------------------------------------------------------
 
@@ -321,9 +317,12 @@ bool CameraControl::openCV_JPG_Conversion(void *mappedMemory, int width, int hei
     params.push_back(95);
     
     bool success = cv::imwrite(image_path, bgrImage, params);
-    if (success) {
+    if (success)
+    {
         LOG_DBG("[LOG_INFO] Saved image: ", image_path);
-    } else {
+    }
+    else
+    {
         std::cerr << "Failed to save image" << std::endl;
     }
 
@@ -333,12 +332,14 @@ bool CameraControl::openCV_JPG_Conversion(void *mappedMemory, int width, int hei
 
 void CameraControl::release()
 {
-    if (camera_) {
+    if (camera_)
+    {
         camera_->stop();
         camera_->release();
         camera_.reset();
     }
-    if (cameraManager_) {
+    if (cameraManager_)
+    {
         cameraManager_->stop();
     }
 }
