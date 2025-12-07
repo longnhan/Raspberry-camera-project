@@ -80,7 +80,7 @@ bool CameraApp::captureImage(const std::string &image_path) {
 }
 
 // =================================================================================
-// --- DUAL-STREAM SETUP (Full FOV Fix) ---
+// --- DUAL-STREAM SETUP (Full FOV + Stable Format) ---
 // =================================================================================
 
 static std::unique_ptr<libcamera::FrameBufferAllocator> g_allocator;
@@ -109,16 +109,15 @@ bool CameraApp::startVideoStream(int width, int height) {
         return false;
     }
 
-    // --- VIDEO STREAM: RESOLUTION FIX ---
-    // Use 728x544 (Half of 1456x1088). 
-    // This triggers 2x2 Binning Mode = FULL FIELD OF VIEW (Not zoomed).
-    // YUYV format ensures colors are correct.
+    // --- STREAM 0: VIDEO (Resolution for quality/FOV) ---
+    // 728x544 = Full Field of View (No Zoom)
+    // YUYV = Correct Color (No Green Screen)
     libcamera::StreamConfiguration &videoConfig = previewConfig_->at(0);
     videoConfig.size = { 728, 544 }; 
     videoConfig.pixelFormat = libcamera::formats::YUYV; 
     videoConfig.bufferCount = 4;
 
-    // --- PHOTO STREAM ---
+    // --- STREAM 1: PHOTO ---
     libcamera::StreamConfiguration &stillConfig = previewConfig_->at(1);
     stillConfig.size = { 1456, 1088 }; 
     stillConfig.pixelFormat = libcamera::formats::NV12; 
@@ -132,6 +131,11 @@ bool CameraApp::startVideoStream(int width, int height) {
 
     previewStream_ = videoConfig.stream();
     stillStream_   = stillConfig.stream();
+
+    // Verify configuration
+    LOG_DBG("[Stream] Video Configured: ", 
+            previewStream_->configuration().size.width, "x", 
+            previewStream_->configuration().size.height, " (YUYV)");
 
     g_allocator = std::make_unique<libcamera::FrameBufferAllocator>(camera_);
     if (g_allocator->allocate(previewStream_) < 0) return false;
@@ -186,7 +190,7 @@ bool CameraApp::startVideoStream(int width, int height) {
         camera_->queueRequest(request);
     }
     
-    LOG_DBG("[Stream] Dual-Pipeline Started (YUYV 728x544).");
+    LOG_DBG("[Stream] Started.");
     return true;
 }
 
@@ -214,7 +218,7 @@ bool CameraApp::getLatestPreviewFrame(cv::Mat &outputFrame) {
 }
 
 // =================================================================================
-// --- CALLBACK (FULL SCREEN RESIZE) ---
+// --- CALLBACK (FULL SCREEN RESIZE LOGIC) ---
 // =================================================================================
 
 void CameraApp::requestComplete(libcamera::Request *request) {
@@ -223,7 +227,7 @@ void CameraApp::requestComplete(libcamera::Request *request) {
 
     libcamera::FrameBuffer *videoBuffer = nullptr;
 
-    // --- 1. HANDLE VIDEO STREAM (YUYV) ---
+    // --- 1. HANDLE VIDEO STREAM (YUYV -> BGR -> 480x320) ---
     if (request->buffers().find(self->previewStream_) != request->buffers().end()) {
         videoBuffer = request->buffers().at(self->previewStream_);
         
@@ -235,8 +239,8 @@ void CameraApp::requestComplete(libcamera::Request *request) {
         
         if (map != MAP_FAILED) {
             const libcamera::StreamConfiguration &config = self->previewStream_->configuration();
-            int w = config.size.width;
-            int h = config.size.height;
+            int w = config.size.width;  // 728
+            int h = config.size.height; // 544
             int stride = config.stride;
 
             // 1. Create Mat from YUYV Data
@@ -246,10 +250,10 @@ void CameraApp::requestComplete(libcamera::Request *request) {
             cv::Mat bgrMat;
             cv::cvtColor(yuyvMat, bgrMat, cv::COLOR_YUV2BGR_YUYV);
             
-            // 3. Resize to 480x320 (Full Screen)
-            // Note: This will stretch slightly (4:3 -> 3:2), but it fills the screen perfectly.
+            // 3. RESIZE TO 480x320 (CRITICAL for Full Screen Fit)
+            // This forces the full sensor view (728x544) to fill the 480x320 GUI window.
             cv::Mat resizedMat;
-            cv::resize(bgrMat, resizedMat, cv::Size(480, 320)); 
+            cv::resize(bgrMat, resizedMat, cv::Size(480, 320), 0, 0, cv::INTER_LINEAR); 
 
             {
                 std::lock_guard<std::mutex> lock(self->videoMutex_);
