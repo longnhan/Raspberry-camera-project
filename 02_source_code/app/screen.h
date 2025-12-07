@@ -4,7 +4,6 @@
 #include <thread>
 #include <atomic>
 
-// Forward declarations to avoid circular includes
 class GUIDisplay;
 class CameraApp; 
 
@@ -12,7 +11,7 @@ class CameraApp;
  * @brief Manages the dedicated GUI thread and high-level display logic.
  * Located in app/
  */
-class Screen {
+class Screen{
 public:
     Screen(GUIDisplay* display, CameraApp* app);
     ~Screen() = default;
@@ -30,5 +29,5 @@ public:
 
 private:
     GUIDisplay* guiDisplay_ = nullptr;
-    CameraApp* cameraApp_ = nullptr; // Access to settings and CameraControl
+    CameraApp* cameraApp_ = nullptr;
 };

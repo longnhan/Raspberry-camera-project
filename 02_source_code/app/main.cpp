@@ -20,12 +20,12 @@ std::queue<int> shutterQueue;
 GUIDisplay guiDisplay; 
 Screen appScreen(&guiDisplay, &sonyGSC);
 
-void signalHandler(int signum) {
+void signalHandler(int signum)
+{
     keep_running = false;
-    // Wake up threads if they are sleeping (optional improvement)
 }
 
-void initializeModules() {}
+void initializeModules(){}
 
 void buttonThread()
 {
@@ -44,16 +44,13 @@ void buttonThread()
     }
 }
 
-// --- CAMERA THREAD (New Parallel Architecture) ---
 void cameraThread()
 {
     LOG_STT(":::::::::::: <--- CAMERA OPERATING START ---> ::::::::::::");
     
-    // 1. START STREAM ONCE
-    // We start the dual-pipeline immediately. It stays running the entire time.
     if (!sonyGSC.startVideoStream(640, 480)) {
         LOG_ERR("Failed to start camera stream!");
-        keep_running = false; // Exit if camera fails
+        keep_running = false;
         return;
     }
 
@@ -69,23 +66,21 @@ void cameraThread()
                 std::string path = sonyGSCPhotoMgr.getpathpicture();
                 LOG_STT("Taking photo: ", path);
                 
-                // 2. CAPTURE IN PARALLEL
-                // We do NOT stop the video. We just request a high-res frame.
-                // The video feed will continue uninterrupted.
-                if (sonyGSC.captureImage(path)) {
+                if (sonyGSC.captureImage(path))
+                {
                     LOG_STT("Photo saved successfully.");
-                } else {
+                }
+                else
+                {
                     LOG_ERR("Photo capture failed.");
                 }
                 
-                // Optional: Tiny delay just to prevent button spamming
                 std::this_thread::sleep_for(std::chrono::milliseconds(200));
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
-    // 3. CLEAN SHUTDOWN
     sonyGSC.stopVideoStream();
     LOG_STT("Camera thread stopped.");
 }
