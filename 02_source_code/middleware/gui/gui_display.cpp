@@ -17,19 +17,22 @@ GUIDisplay::~GUIDisplay() {
     std::cout << "[GUIDisplay] Cleaned up SDL resources." << std::endl;
 }
 
-bool GUIDisplay::initialize() {
-    // This is the essential part that needs to work for the LCD
+bool GUIDisplay::initialize(int width, int height) {
+    // Store configuration
+    width_ = width;
+    height_ = height;
+
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) < 0) {
         std::cerr << "[GUIDisplay] SDL could not initialize! Error: " << SDL_GetError() << std::endl;
         return false;
     }
 
-    // Create window sized 480x320
+    // Create window sized to the requested resolution
     window_ = SDL_CreateWindow("Rudo Camera", 
                                SDL_WINDOWPOS_UNDEFINED, 
                                SDL_WINDOWPOS_UNDEFINED, 
-                               SCREEN_WIDTH, 
-                               SCREEN_HEIGHT, 
+                               width_, 
+                               height_, 
                                SDL_WINDOW_SHOWN);
     if (!window_) {
         std::cerr << "[GUIDisplay] Window could not be created! Error: " << SDL_GetError() << std::endl;
@@ -43,18 +46,18 @@ bool GUIDisplay::initialize() {
         return false;
     }
     
-    // Create the persistent texture for the video stream (using BGR format which OpenCV produces)
+    // Create the persistent texture matching the requested size
     videoTexture_ = SDL_CreateTexture(renderer_, 
-                                       SDL_PIXELFORMAT_BGR24, // Matches the format converted by OpenCV
+                                       SDL_PIXELFORMAT_BGR24,
                                        SDL_TEXTUREACCESS_STREAMING, 
-                                       SCREEN_WIDTH, 
-                                       SCREEN_HEIGHT);
+                                       width_, 
+                                       height_);
     if (!videoTexture_) {
         std::cerr << "[GUIDisplay] Texture could not be created! Error: " << SDL_GetError() << std::endl;
         return false;
     }
 
-    std::cout << "[GUIDisplay] SDL and display resources initialized." << std::endl;
+    std::cout << "[GUIDisplay] Initialized at " << width_ << "x" << height_ << "." << std::endl;
     return true;
 }
 
@@ -63,29 +66,26 @@ void GUIDisplay::renderFrame(const cv::Mat &frame) {
         return;
     }
     
-    // 1. Update the texture with the new frame data
+    // Update texture
     SDL_UpdateTexture(videoTexture_, 
                       NULL, 
                       frame.data, 
                       frame.cols * frame.elemSize());
 
-    // 2. Clear the screen
+    // Clear screen
     SDL_SetRenderDrawColor(renderer_, 0x00, 0x00, 0x00, 0xFF);
     SDL_RenderClear(renderer_);
 
-    // 3. Copy the video texture to the renderer (filling the entire screen)
+    // Copy texture to full screen
     SDL_RenderCopy(renderer_, videoTexture_, NULL, NULL); 
 }
 
-// Implementation for the simplified drawUIOverlays (FIX 1)
 void GUIDisplay::drawUIOverlays() {
-    // Only static overlays (e.g., crosshair) would go here.
+    // UI logic
 }
 
-// Implementation for the missing present method (FIX 2)
 void GUIDisplay::present() {
     if (renderer_) {
-        // This is the essential SDL call to swap buffers and display the result
-        SDL_RenderPresent(renderer_); // FIX: Missing implementation of SDL_RenderPresent
+        SDL_RenderPresent(renderer_); 
     }
 }
