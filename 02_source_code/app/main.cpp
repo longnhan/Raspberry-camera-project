@@ -14,7 +14,7 @@ Button shutter_btn(SHUTTER_BUTTON, GPIO_INPUT, EN_ACTIVE_HIGH);
 std::atomic<bool> keep_running(true);
 cameraSetting sonyGSCSettings;
 photo_management sonyGSCPhotoMgr; 
-CameraApp sonyGSC(ISO_800, SS1_125, Disable, F4_0, FP1_8); 
+CameraApp sonyGSC(ISO_AUTO, SS1_125, Auto, F4_0, FP1_8); 
 std::queue<int> shutterQueue;
 
 GUIDisplay guiDisplay; 

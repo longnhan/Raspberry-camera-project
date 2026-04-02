@@ -31,7 +31,7 @@ protected: // <--- CHANGED FROM PRIVATE TO PROTECTED
     int shutterSpeed_;
     int exposureMode_;
 
-private: 
+protected: // Changed from private so derived apps can access metadata helpers
     libcamera::ControlList prepareControls();
     bool openCV_JPG_Conversion(void *mappedMemory, int width, int height, int stride, const std::string &image_path, size_t length);
     void addMetadata(const std::string &filePath);

@@ -11,16 +11,17 @@
 #include <vector> 
 #include <iostream>
 #include <queue>
+#include <libcamera/control_ids.h>
 
 // --- STATIC MEMBER DEFINITION ---
 CameraApp* CameraApp::instance_ = nullptr; 
 
 namespace {
     int LocalISOConvert(int iso) { return iso; }
-    int LocalShutterSpeedConvert(int speed) { return speed; }
+    int LocalShutterSpeedConvert(int speed) { return 1000000 / ((speed == 0) ? 1 : speed); }
     int LocalExposureModeConvert(int mode) { return mode; }
-    float LocalApertureConvert(float aperture) { return aperture; }
-    float LocalFlashPowerCOnvert(float power) { return power; }
+    float LocalApertureConvert(float aperture) { return aperture / 10.0f; }
+    float LocalFlashPowerCOnvert(float power) { return (power == 0) ? power : (1.0f / power); }
 }
 
 // --- SYNC OBJECTS ---
@@ -45,7 +46,7 @@ CameraApp::~CameraApp() {
 CameraApp* CameraApp::getInstance() { return instance_; }
 bool CameraApp::initialize() { return CameraControl::initialize(); }
 void CameraApp::setISO(int iso) { CameraControl::setISO(iso); }
-void CameraApp::setShutterSpeed(int shutterSpeed) { CameraControl::setShutterSpeed(shutterSpeed); }
+void CameraApp::setShutterSpeed(int shutterSpeed) { CameraControl::setShutterSpeed(LocalShutterSpeedConvert(shutterSpeed)); }
 void CameraApp::setExposure(int exposureMode) { CameraControl::setExposure(exposureMode); }
 
 void CameraApp::release() { 
@@ -183,6 +184,7 @@ bool CameraApp::startVideoStream(int width, int height)
     {
         libcamera::Request *request = camera_->createRequest().release();
         if (!request || request->addBuffer(previewStream_, buffer.get()) < 0) return false;
+        request->controls().set(libcamera::controls::ExposureTime, shutterSpeed_);
         requests_to_recycle_.push_back(request);
     }
 
@@ -237,6 +239,15 @@ void CameraApp::requestComplete(libcamera::Request *request)
 {
     CameraApp *self = CameraApp::getInstance();
     if (!self || !self->streamRunning_ || request->status() == libcamera::Request::RequestCancelled) return;
+
+    // --- READ METADATA FOR EXIF ---
+    const libcamera::ControlList &metadata = request->metadata();
+    if (metadata.contains(libcamera::controls::AnalogueGain.id())) {
+        auto gain = metadata.get(libcamera::controls::AnalogueGain);
+        if (gain) {
+            self->iso_ = static_cast<int>(*gain * 100.0f);
+        }
+    }
 
     libcamera::FrameBuffer *videoBuffer = nullptr;
 
@@ -299,10 +310,6 @@ void CameraApp::requestComplete(libcamera::Request *request)
             {
                 try
                 {
-                    cv::Mat nv12(h + h / 2, w, CV_8UC1, map, stride);
-                    cv::Mat bgr;
-                    cv::cvtColor(nv12, bgr, cv::COLOR_YUV2BGR_NV12);
-                    
                     std::string path;
                     {
                         std::lock_guard<std::mutex> lock(capture_mutex);
@@ -310,8 +317,9 @@ void CameraApp::requestComplete(libcamera::Request *request)
                     }
                     
                     if (!path.empty()) {
-                        cv::imwrite(path, bgr);
-                        LOG_DBG("[Callback] Saved to ", path);
+                        self->openCV_JPG_Conversion(map, w, h, stride, path, totalLength);
+                        self->addMetadata(path);
+                        map = nullptr; // openCV_JPG_Conversion handles unmapping internally
                     }
                 } 
                 catch (...)
@@ -319,7 +327,9 @@ void CameraApp::requestComplete(libcamera::Request *request)
                     LOG_ERR("[Callback] Error converting image");
                 }
             }
-            munmap(map, totalLength);
+            if (map != MAP_FAILED && map != nullptr) {
+                munmap(map, totalLength);
+            }
         }
 
         {
@@ -337,6 +347,7 @@ void CameraApp::requestComplete(libcamera::Request *request)
     // --- RE-QUEUE ---
     if (self->streamRunning_) {
         request->reuse(libcamera::Request::ReuseFlag(0));
+        request->controls().set(libcamera::controls::ExposureTime, self->shutterSpeed_);
         
         if (videoBuffer) {
             request->addBuffer(self->previewStream_, videoBuffer);

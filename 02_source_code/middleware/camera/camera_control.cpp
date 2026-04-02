@@ -264,12 +264,12 @@ void CameraControl::addMetadata(const std::string &filePath)
         if (entry->data) exif_set_rational(entry->data, exif_data_get_byte_order(ed), rational);
     };
 
-    setExifShort(exifData, EXIF_TAG_ISO_SPEED_RATINGS, EXIF_IFD_0, static_cast<unsigned short>(iso_));
+    setExifShort(exifData, EXIF_TAG_ISO_SPEED_RATINGS, EXIF_IFD_EXIF, static_cast<unsigned short>(iso_));
     double exposureTime = shutterSpeed_ / 1000000.0; 
     if (exposureTime <= 0) exposureTime = 0.000001;
-    setExifRational(exifData, EXIF_TAG_EXPOSURE_TIME, EXIF_IFD_0, exposureTime);
-    setExifShort(exifData, EXIF_TAG_EXPOSURE_MODE, EXIF_IFD_0, static_cast<unsigned short>(exposureMode_));
-    setExifRational(exifData, EXIF_TAG_FNUMBER, EXIF_IFD_0, 2.8);
+    setExifRational(exifData, EXIF_TAG_EXPOSURE_TIME, EXIF_IFD_EXIF, exposureTime);
+    setExifShort(exifData, EXIF_TAG_EXPOSURE_MODE, EXIF_IFD_EXIF, static_cast<unsigned short>(exposureMode_));
+    setExifRational(exifData, EXIF_TAG_FNUMBER, EXIF_IFD_EXIF, 2.8);
     setExifEntry(exifData, EXIF_TAG_MODEL, EXIF_IFD_0, "Compute Module 4 with IMX296");
     setExifEntry(exifData, EXIF_TAG_SOFTWARE, EXIF_IFD_0, "Rudo Camera App");
 

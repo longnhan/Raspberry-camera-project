@@ -75,6 +75,7 @@ enum ShutterSpeed
 // define value ISO
 enum ISO
 {
+    ISO_AUTO  = 0,
     ISO_12800 = 12800,
     ISO_6400  = 6400,
     ISO_3200  = 3200,
