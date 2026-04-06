@@ -1,5 +1,7 @@
 #include "gui_display.h"
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 
 GUIDisplay::GUIDisplay() = default;
 
@@ -101,7 +103,53 @@ void GUIDisplay::renderFrame(const cv::Mat &frame)
     SDL_RenderCopy(renderer_, videoTexture_, NULL, NULL); 
 }
 
-void GUIDisplay::drawUIOverlays() {}
+void GUIDisplay::drawUIOverlays(std::shared_ptr<CameraState> state) 
+{
+    if (!renderer_ || !state) return;
+
+    // 1. Shutter Blink Animation
+    bool isCapturing = state->captureTriggered.load();
+    if (isCapturing && blinkStartTime_ == 0) {
+        blinkStartTime_ = SDL_GetTicks();
+        state->captureTriggered.store(false); 
+    }
+
+    if (blinkStartTime_ != 0) {
+        uint32_t elapsed = SDL_GetTicks() - blinkStartTime_;
+        if (elapsed < 150) { // Blink lasts 150ms
+            SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
+            SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 200); // White flash
+            SDL_Rect screenRect = {0, 0, width_, height_};
+            SDL_RenderFillRect(renderer_, &screenRect);
+        } else {
+            blinkStartTime_ = 0; // Reset
+        }
+    }
+
+    // 2. 3x3 Rule-of-Thirds Grid
+    SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 100); // Semi-transparent white
+    
+    int thirdW = width_ / 3;
+    int thirdH = height_ / 3;
+
+    // Vertical lines
+    SDL_RenderDrawLine(renderer_, thirdW, 0, thirdW, height_);
+    SDL_RenderDrawLine(renderer_, 2 * thirdW, 0, 2 * thirdW, height_);
+
+    // Horizontal lines
+    SDL_RenderDrawLine(renderer_, 0, thirdH, width_, thirdH);
+    SDL_RenderDrawLine(renderer_, 0, 2 * thirdH, width_, 2 * thirdH);
+
+    // 3. Real-time Metadata Sidebar Background
+    SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 150); // Semi-transparent black sidebar
+    SDL_Rect sidebarRect = {width_ - 120, 0, 120, height_};
+    SDL_RenderFillRect(renderer_, &sidebarRect);
+
+    // Note: SDL2 lacks native text rendering without SDL_ttf.
+    // Text rendering for ISO/SS/Aperture will be pushed directly onto the frame 
+    // via OpenCV in renderFrame(), or we rely entirely on the visual sidebar indicators.
+}
 
 void GUIDisplay::present() 
 {

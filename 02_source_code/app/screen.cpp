@@ -3,6 +3,9 @@
 #include "camera_app.h" 
 #include "gui_display.h" 
 #include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <string>
 
 extern std::atomic<bool> keep_running; 
 
@@ -54,8 +57,27 @@ void Screen::guiThread()
 
         if (cameraApp_->getLatestPreviewFrame(previewFrame))
         {
+            auto state = cameraApp_->getSharedState();
+            if (state && !previewFrame.empty()) {
+                // Determine denominator for shutter speed text
+                int ss_val = state->shutterSpeed.load();
+                std::string ss_str = "1/" + std::to_string(ss_val);
+                
+                std::string iso_str = "ISO " + std::to_string(state->iso.load());
+                
+                std::ostringstream ap_stream;
+                ap_stream << "F" << std::fixed << std::setprecision(1) << state->aperture.load();
+                std::string ap_str = ap_stream.str();
+                
+                // Draw text in top right area
+                int x_offset = previewFrame.cols - 110; // match sidebar width
+                cv::putText(previewFrame, iso_str, cv::Point(x_offset, 30), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255), 1, cv::LINE_AA);
+                cv::putText(previewFrame, ss_str,  cv::Point(x_offset, 60), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255), 1, cv::LINE_AA);
+                cv::putText(previewFrame, ap_str,  cv::Point(x_offset, 90), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255), 1, cv::LINE_AA);
+            }
+
             guiDisplay_->renderFrame(previewFrame); 
-            guiDisplay_->drawUIOverlays(); 
+            guiDisplay_->drawUIOverlays(state); 
             guiDisplay_->present();
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
