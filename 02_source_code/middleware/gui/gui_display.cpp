@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <cmath>
 
 GUIDisplay::GUIDisplay() = default;
 
@@ -188,23 +189,40 @@ void GUIDisplay::drawUIOverlays(std::shared_ptr<CameraState> state)
         uint32_t elapsed = SDL_GetTicks() - blinkStartTime_;
         if (elapsed <= 200) { // Blink lasts 200ms
             float progress;
-            if (elapsed <= 100) { // Closing
+            if (elapsed <= 100) { // Closing (progress 0 -> 1)
                 progress = elapsed / 100.0f;
-            } else {              // Opening
+            } else {              // Opening (progress 1 -> 0)
                 progress = (200 - elapsed) / 100.0f; 
             }
             
-            int rectHeight = static_cast<int>((render_h / 2.0f) * progress);
+            float maxR = std::sqrt((render_w/2.0f)*(render_w/2.0f) + (render_h/2.0f)*(render_h/2.0f));
+            float currentR = maxR * (1.0f - progress);
             
+            SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
             SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255); // Solid black
             
-            // Top rect
-            SDL_Rect topRect = {0, 0, render_w, rectHeight};
-            SDL_RenderFillRect(renderer_, &topRect);
-            
-            // Bottom rect
-            SDL_Rect btmRect = {0, render_h - rectHeight, render_w, rectHeight};
-            SDL_RenderFillRect(renderer_, &btmRect);
+            for (int y = 0; y < render_h; ++y) {
+                int dy = y - cy;
+                float dy2 = static_cast<float>(dy * dy);
+                float r2 = currentR * currentR;
+                
+                if (dy2 >= r2) {
+                    // Line is fully outside the clear circle, draw entirely black
+                    SDL_RenderDrawLine(renderer_, 0, y, render_w, y);
+                } else {
+                    // Line intersects the circle
+                    int dx = static_cast<int>(std::sqrt(r2 - dy2));
+                    int leftEdge = cx - dx;
+                    int rightEdge = cx + dx;
+                    
+                    if (leftEdge > 0) {
+                        SDL_RenderDrawLine(renderer_, 0, y, leftEdge, y);
+                    }
+                    if (rightEdge < render_w) {
+                        SDL_RenderDrawLine(renderer_, rightEdge, y, render_w, y);
+                    }
+                }
+            }
         } else {
             blinkStartTime_ = 0; // Reset
         }
