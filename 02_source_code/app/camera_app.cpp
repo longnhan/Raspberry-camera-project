@@ -35,6 +35,11 @@ CameraApp::CameraApp(ISO iso, ShutterSpeed shuttleSpeed, ExposureMode exposureMo
 {
     instance_ = this;
     if (camera_) camera_->release();
+    if (sharedState_) {
+        sharedState_->iso.store(LocalISOConvert(iso));
+        sharedState_->shutterSpeed.store(shuttleSpeed); // keeping denominator for display
+        sharedState_->aperture.store(LocalApertureConvert(aperture));
+    }
 }
 
 CameraApp::~CameraApp() {
@@ -45,9 +50,17 @@ CameraApp::~CameraApp() {
 
 CameraApp* CameraApp::getInstance() { return instance_; }
 bool CameraApp::initialize() { return CameraControl::initialize(); }
-void CameraApp::setISO(int iso) { CameraControl::setISO(iso); }
-void CameraApp::setShutterSpeed(int shutterSpeed) { CameraControl::setShutterSpeed(LocalShutterSpeedConvert(shutterSpeed)); }
-void CameraApp::setExposure(int exposureMode) { CameraControl::setExposure(exposureMode); }
+void CameraApp::setISO(int iso) { 
+    CameraControl::setISO(iso); 
+    if (sharedState_) sharedState_->iso.store(iso);
+}
+void CameraApp::setShutterSpeed(int shutterSpeed) { 
+    CameraControl::setShutterSpeed(LocalShutterSpeedConvert(shutterSpeed)); 
+    if (sharedState_) sharedState_->shutterSpeed.store(shutterSpeed);
+}
+void CameraApp::setExposure(int exposureMode) { 
+    CameraControl::setExposure(exposureMode); 
+}
 
 void CameraApp::release() { 
     if (camera_) camera_->release(); 
@@ -68,6 +81,7 @@ bool CameraApp::captureImage(const std::string &image_path)
         g_current_image_path = image_path;
         capture_finished = false;
         take_picture_request_ = true; 
+        if (sharedState_) sharedState_->captureTriggered.store(true);
     }
     
     std::unique_lock<std::mutex> lock(capture_mutex);
@@ -348,6 +362,7 @@ void CameraApp::requestComplete(libcamera::Request *request)
     if (self->streamRunning_) {
         request->reuse(libcamera::Request::ReuseFlag(0));
         request->controls().set(libcamera::controls::ExposureTime, self->shutterSpeed_);
+        request->controls().set(libcamera::controls::AnalogueGain, self->iso_ / 100.0f);
         
         if (videoBuffer) {
             request->addBuffer(self->previewStream_, videoBuffer);

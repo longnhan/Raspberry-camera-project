@@ -9,11 +9,14 @@
 #include <condition_variable>
 #include <atomic>
 #include <vector>
-#include <memory> 
+#include <memory>
+#include "camera_state.h"
 
 class CameraApp : public CameraControl {
 public:
     static CameraApp* getInstance();
+    
+    std::shared_ptr<CameraState> getSharedState() { return sharedState_; }
     
     CameraApp(ISO iso, ShutterSpeed shuttleSpeed, ExposureMode exposureMode, Aperture aperture, FlashPower flashPower);
     ~CameraApp();
@@ -58,6 +61,8 @@ private:
     cv::Mat currentPreviewFrame_;
     std::mutex videoMutex_;
     std::condition_variable videoCv_;
+    
+    std::shared_ptr<CameraState> sharedState_ = std::make_shared<CameraState>();
 };
 
 #endif // CAMERA_APP_H

@@ -2,6 +2,8 @@
 
 #include <SDL2/SDL.h>
 #include <opencv2/opencv.hpp>
+#include <memory>
+#include "../../app/camera_state.h"
 
 /**
  * @brief Low-level SDL2 handler for video rendering.
@@ -30,7 +32,7 @@ public:
     /**
      * @brief Draws simple UI elements (simplified, no parameters).
      */
-    void drawUIOverlays(); 
+    void drawUIOverlays(std::shared_ptr<CameraState> state); 
 
     /**
      * @brief Finalizes the frame by calling SDL_RenderPresent().
@@ -45,4 +47,7 @@ private:
     // Configured at runtime via initialize()
     int width_ = 0;
     int height_ = 0;
+    
+    // Shutter blink timing
+    uint32_t blinkStartTime_ = 0;
 };
