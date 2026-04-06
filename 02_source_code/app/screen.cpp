@@ -59,24 +59,45 @@ void Screen::guiThread()
         {
             auto state = cameraApp_->getSharedState();
             if (state && !previewFrame.empty()) {
-                // Determine denominator for shutter speed text
-                int ss_val = state->shutterSpeed.load();
-                std::string ss_str = "1/" + std::to_string(ss_val);
+                static uint32_t lastTextUpdate = 0;
+                static std::string ss_str, iso_str, ap_str;
+                uint32_t currentTicks = SDL_GetTicks();
                 
-                std::string iso_str = "ISO " + std::to_string(state->iso.load());
+                if (currentTicks - lastTextUpdate >= 100) {
+                    int ss_val = state->shutterSpeed.load();
+                    ss_str = "1/" + std::to_string(ss_val);
+                    iso_str = "ISO " + std::to_string(state->iso.load());
+                    
+                    std::ostringstream ap_stream;
+                    ap_stream << "f/" << std::fixed << std::setprecision(1) << state->aperture.load();
+                    ap_str = ap_stream.str();
+                    lastTextUpdate = currentTicks;
+                }
                 
-                std::ostringstream ap_stream;
-                ap_stream << "F" << std::fixed << std::setprecision(1) << state->aperture.load();
-                std::string ap_str = ap_stream.str();
+                // Helper lambda for text outline
+                auto drawTextWithOutline = [&](cv::Mat& img, const std::string& text, cv::Point pt, double scale, int thickness) {
+                    // Draw black outline
+                    cv::putText(img, text, cv::Point(pt.x+1, pt.y+1), cv::FONT_HERSHEY_SIMPLEX, scale, cv::Scalar(0, 0, 0), thickness+1, cv::LINE_AA);
+                    cv::putText(img, text, cv::Point(pt.x-1, pt.y-1), cv::FONT_HERSHEY_SIMPLEX, scale, cv::Scalar(0, 0, 0), thickness+1, cv::LINE_AA);
+                    cv::putText(img, text, cv::Point(pt.x-1, pt.y+1), cv::FONT_HERSHEY_SIMPLEX, scale, cv::Scalar(0, 0, 0), thickness+1, cv::LINE_AA);
+                    cv::putText(img, text, cv::Point(pt.x+1, pt.y-1), cv::FONT_HERSHEY_SIMPLEX, scale, cv::Scalar(0, 0, 0), thickness+1, cv::LINE_AA);
+                    // Draw white text
+                    cv::putText(img, text, pt, cv::FONT_HERSHEY_SIMPLEX, scale, cv::Scalar(255, 255, 255), thickness, cv::LINE_AA);
+                };
+
+                // 1. Battery Indicator Top Right
+                int screen_w = previewFrame.cols;
+                int screen_h = previewFrame.rows;
+                drawTextWithOutline(previewFrame, "100%", cv::Point(screen_w - 60, 30), 0.5, 1);
                 
-                // Draw text in top right area
-                int x_offset = previewFrame.cols - 110; // match sidebar width
-                cv::putText(previewFrame, iso_str, cv::Point(x_offset, 30), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255), 1, cv::LINE_AA);
-                cv::putText(previewFrame, ss_str,  cv::Point(x_offset, 60), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255), 1, cv::LINE_AA);
-                cv::putText(previewFrame, ap_str,  cv::Point(x_offset, 90), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 255, 255), 1, cv::LINE_AA);
+                // 2. Exposure Values Bottom Right
+                int bottom_y = screen_h - 20;
+                drawTextWithOutline(previewFrame, ap_str,  cv::Point(screen_w - 70, bottom_y), 0.5, 1);
+                drawTextWithOutline(previewFrame, ss_str,  cv::Point(screen_w - 70, bottom_y - 25), 0.5, 1);
+                drawTextWithOutline(previewFrame, iso_str, cv::Point(screen_w - 70, bottom_y - 50), 0.5, 1);
             }
 
-            guiDisplay_->renderFrame(previewFrame); 
+            guiDisplay_->renderFrame(previewFrame);  
             guiDisplay_->drawUIOverlays(state); 
             guiDisplay_->present();
         } else {

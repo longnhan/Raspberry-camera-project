@@ -107,7 +107,42 @@ void GUIDisplay::drawUIOverlays(std::shared_ptr<CameraState> state)
 {
     if (!renderer_ || !state) return;
 
-    // 1. Shutter Blink Animation
+    int render_w = 0, render_h = 0;
+    SDL_GetRendererOutputSize(renderer_, &render_w, &render_h);
+    if (render_w == 0 || render_h == 0) {
+        render_w = width_;
+        render_h = height_;
+    }
+
+    // 1. Grid & Focus Area
+    SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
+    
+    // 30% Opacity lines for 3x3 Grid (255 * 0.3 = 76)
+    SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 76);
+    
+    int thirdW = render_w / 3;
+    int thirdH = render_h / 3;
+
+    // Vertical lines
+    SDL_RenderDrawLine(renderer_, thirdW, 0, thirdW, render_h);
+    SDL_RenderDrawLine(renderer_, 2 * thirdW, 0, 2 * thirdW, render_h);
+
+    // Horizontal lines
+    SDL_RenderDrawLine(renderer_, 0, thirdH, render_w, thirdH);
+    SDL_RenderDrawLine(renderer_, 0, 2 * thirdH, render_w, 2 * thirdH);
+
+    // Center Focus Square (10% of screen height, 40% opacity = 102)
+    int squareSize = render_h / 10;
+    SDL_Rect focusRect = {
+        (render_w - squareSize) / 2,
+        (render_h - squareSize) / 2,
+        squareSize,
+        squareSize
+    };
+    SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 102);
+    SDL_RenderDrawRect(renderer_, &focusRect);
+
+    // 2. Shutter Blink Animation (top-most layer)
     bool isCapturing = state->captureTriggered.load();
     if (isCapturing && blinkStartTime_ == 0) {
         blinkStartTime_ = SDL_GetTicks();
@@ -116,39 +151,29 @@ void GUIDisplay::drawUIOverlays(std::shared_ptr<CameraState> state)
 
     if (blinkStartTime_ != 0) {
         uint32_t elapsed = SDL_GetTicks() - blinkStartTime_;
-        if (elapsed < 150) { // Blink lasts 150ms
-            SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
-            SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 200); // White flash
-            SDL_Rect screenRect = {0, 0, width_, height_};
-            SDL_RenderFillRect(renderer_, &screenRect);
+        if (elapsed <= 200) { // Blink lasts 200ms
+            float progress;
+            if (elapsed <= 100) { // Closing
+                progress = elapsed / 100.0f;
+            } else {              // Opening
+                progress = (200 - elapsed) / 100.0f; 
+            }
+            
+            int rectHeight = static_cast<int>((render_h / 2.0f) * progress);
+            
+            SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255); // Solid black
+            
+            // Top rect
+            SDL_Rect topRect = {0, 0, render_w, rectHeight};
+            SDL_RenderFillRect(renderer_, &topRect);
+            
+            // Bottom rect
+            SDL_Rect btmRect = {0, render_h - rectHeight, render_w, rectHeight};
+            SDL_RenderFillRect(renderer_, &btmRect);
         } else {
             blinkStartTime_ = 0; // Reset
         }
     }
-
-    // 2. 3x3 Rule-of-Thirds Grid
-    SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 100); // Semi-transparent white
-    
-    int thirdW = width_ / 3;
-    int thirdH = height_ / 3;
-
-    // Vertical lines
-    SDL_RenderDrawLine(renderer_, thirdW, 0, thirdW, height_);
-    SDL_RenderDrawLine(renderer_, 2 * thirdW, 0, 2 * thirdW, height_);
-
-    // Horizontal lines
-    SDL_RenderDrawLine(renderer_, 0, thirdH, width_, thirdH);
-    SDL_RenderDrawLine(renderer_, 0, 2 * thirdH, width_, 2 * thirdH);
-
-    // 3. Real-time Metadata Sidebar Background
-    SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 150); // Semi-transparent black sidebar
-    SDL_Rect sidebarRect = {width_ - 120, 0, 120, height_};
-    SDL_RenderFillRect(renderer_, &sidebarRect);
-
-    // Note: SDL2 lacks native text rendering without SDL_ttf.
-    // Text rendering for ISO/SS/Aperture will be pushed directly onto the frame 
-    // via OpenCV in renderFrame(), or we rely entirely on the visual sidebar indicators.
 }
 
 void GUIDisplay::present() 
