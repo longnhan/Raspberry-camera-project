@@ -117,30 +117,65 @@ void GUIDisplay::drawUIOverlays(std::shared_ptr<CameraState> state)
     // 1. Grid & Focus Area
     SDL_SetRenderDrawBlendMode(renderer_, SDL_BLENDMODE_BLEND);
     
-    // 30% Opacity lines for 3x3 Grid (255 * 0.3 = 76)
-    SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 76);
+    // 50% Opacity lines for 3x3 Grid (255 * 0.5 = 128)
+    SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 128);
     
     int thirdW = render_w / 3;
     int thirdH = render_h / 3;
 
-    // Vertical lines
+    // Vertical lines (double thickness)
     SDL_RenderDrawLine(renderer_, thirdW, 0, thirdW, render_h);
+    SDL_RenderDrawLine(renderer_, thirdW + 1, 0, thirdW + 1, render_h);
     SDL_RenderDrawLine(renderer_, 2 * thirdW, 0, 2 * thirdW, render_h);
+    SDL_RenderDrawLine(renderer_, 2 * thirdW + 1, 0, 2 * thirdW + 1, render_h);
 
-    // Horizontal lines
+    // Horizontal lines (double thickness)
     SDL_RenderDrawLine(renderer_, 0, thirdH, render_w, thirdH);
+    SDL_RenderDrawLine(renderer_, 0, thirdH + 1, render_w, thirdH + 1);
     SDL_RenderDrawLine(renderer_, 0, 2 * thirdH, render_w, 2 * thirdH);
+    SDL_RenderDrawLine(renderer_, 0, 2 * thirdH + 1, render_w, 2 * thirdH + 1);
 
-    // Center Focus Square (10% of screen height, 40% opacity = 102)
-    int squareSize = render_h / 10;
-    SDL_Rect focusRect = {
-        (render_w - squareSize) / 2,
-        (render_h - squareSize) / 2,
-        squareSize,
-        squareSize
+    // Center Focus Reticle (12.5% of screen height)
+    int squareSize = render_h / 8;
+    int cx = render_w / 2;
+    int cy = render_h / 2;
+    int span = squareSize / 2;
+    int len = squareSize / 3;
+
+    // Helper lambda to draw the reticle with double thickness lines
+    auto drawReticle = [&](int offsetX, int offsetY, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+        SDL_SetRenderDrawColor(renderer_, r, g, b, a);
+        int ox = cx + offsetX;
+        int oy = cy + offsetY;
+
+        // Draw each line twice for thickness
+        for(int k=0; k<=1; k++) {
+            // Top-Left corner
+            SDL_RenderDrawLine(renderer_, ox - span, oy - span + k, ox - span + len, oy - span + k);
+            SDL_RenderDrawLine(renderer_, ox - span + k, oy - span, ox - span + k, oy - span + len);
+
+            // Top-Right corner
+            SDL_RenderDrawLine(renderer_, ox + span - len, oy - span + k, ox + span, oy - span + k);
+            SDL_RenderDrawLine(renderer_, ox + span + k, oy - span, ox + span + k, oy - span + len);
+
+            // Bottom-Left corner
+            SDL_RenderDrawLine(renderer_, ox - span, oy + span + k, ox - span + len, oy + span + k);
+            SDL_RenderDrawLine(renderer_, ox - span + k, oy + span - len, ox - span + k, oy + span);
+
+            // Bottom-Right corner
+            SDL_RenderDrawLine(renderer_, ox + span - len, oy + span + k, ox + span, oy + span + k);
+            SDL_RenderDrawLine(renderer_, ox + span + k, oy + span - len, ox + span + k, oy + span);
+
+            // Center Crosshair (slightly larger, 6px radius)
+            int cross = 6;
+            SDL_RenderDrawLine(renderer_, ox - cross, oy + k, ox + cross, oy + k);
+            SDL_RenderDrawLine(renderer_, ox + k, oy - cross, ox + k, oy + cross);
+        }
     };
-    SDL_SetRenderDrawColor(renderer_, 255, 255, 255, 102);
-    SDL_RenderDrawRect(renderer_, &focusRect);
+
+    // Draw shadow first (40% opacity black, +1 offset), then white (40% opacity)
+    drawReticle(1, 1, 0, 0, 0, 102); 
+    drawReticle(0, 0, 255, 255, 255, 102);
 
     // 2. Shutter Blink Animation (top-most layer)
     bool isCapturing = state->captureTriggered.load();
