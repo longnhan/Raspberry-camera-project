@@ -67,7 +67,7 @@ void Screen::guiThread()
                 if (currentTicks - lastTextUpdate >= 1000 || lastTextUpdate == 0) {
                     int ss_val = state->shutterSpeed.load();
                     ss_str = "1/" + std::to_string(ss_val);
-                    iso_str = "ISO 1000"; // Fixed as per requirements
+                    iso_str = "ISO " + std::to_string(state->iso.load()); // Changed back to dynamic
                     ap_str = "f/2.8"; // Fixed as per requirements
                     lastTextUpdate = currentTicks;
                 }
@@ -85,9 +85,12 @@ void Screen::guiThread()
 
                 // 1. Top Status Indicators
                 int top_y = 30;
-                drawTextWithOutline(previewFrame, "AUTO WB",   cv::Point(20, top_y), 0.4, 1);
-                drawTextWithOutline(previewFrame, "AUTO EV",   cv::Point(screen_w/2 - 30, top_y), 0.4, 1);
-                drawTextWithOutline(previewFrame, "AUTO ISO",  cv::Point(screen_w - 200, top_y), 0.4, 1);
+                int x_wb = 20;
+                int x_iso = screen_w - 130; 
+                int x_ev = x_wb + (x_iso - x_wb) / 2 - 20; // Exact midpoint minus offset for text length
+                drawTextWithOutline(previewFrame, "AUTO WB",   cv::Point(x_wb, top_y), 0.4, 1);
+                drawTextWithOutline(previewFrame, "AUTO EV",   cv::Point(x_ev, top_y), 0.4, 1);
+                drawTextWithOutline(previewFrame, "AUTO ISO",  cv::Point(x_iso, top_y), 0.4, 1);
 
                 // 2. Graphical Battery Indicator Top Right (75% Green)
                 int batX = screen_w - 50;
@@ -126,22 +129,25 @@ void Screen::guiThread()
                     cv::Point(mx + 5, my - 10)
                 };
                 
+                cv::Scalar yellow(0, 255, 255); // BGR format for yellow
+                
                 // Draw drop shadow
                 std::vector<cv::Point> boltPtsShadow;
                 for (auto& p : boltPts) boltPtsShadow.push_back(cv::Point(p.x + 1, p.y + 1));
                 cv::fillPoly(previewFrame, std::vector<std::vector<cv::Point>>{boltPtsShadow}, shadow, cv::LINE_AA);
-                // Draw white bolt
-                cv::fillPoly(previewFrame, std::vector<std::vector<cv::Point>>{boltPts}, white, cv::LINE_AA);
+                // Draw yellow bolt
+                cv::fillPoly(previewFrame, std::vector<std::vector<cv::Point>>{boltPts}, yellow, cv::LINE_AA);
 
                 // 4. Bottom Navigation & Mode Icons
                 int bottom_y = screen_h - 20;
                 drawTextWithOutline(previewFrame, "MF", cv::Point(20, bottom_y), 0.5, 1);
                 drawTextWithOutline(previewFrame, "M",  cv::Point(screen_w/2 - 10, bottom_y), 0.6, 2);
 
-                // 5. Exposure Values Bottom Right
-                drawTextWithOutline(previewFrame, ap_str,  cv::Point(screen_w - 70, bottom_y), 0.5, 1);
-                drawTextWithOutline(previewFrame, ss_str,  cv::Point(screen_w - 70, bottom_y - 25), 0.5, 1);
-                drawTextWithOutline(previewFrame, iso_str, cv::Point(screen_w - 70, bottom_y - 50), 0.5, 1);
+                // 5. Exposure Values Middle Right (Center vertically)
+                int mid_y = screen_h / 2 + 25; // Added offset so block is visually centered
+                drawTextWithOutline(previewFrame, ap_str,  cv::Point(screen_w - 70, mid_y), 0.5, 1);
+                drawTextWithOutline(previewFrame, ss_str,  cv::Point(screen_w - 70, mid_y - 25), 0.5, 1);
+                drawTextWithOutline(previewFrame, iso_str, cv::Point(screen_w - 70, mid_y - 50), 0.5, 1);
             }
 
             guiDisplay_->renderFrame(previewFrame);  
