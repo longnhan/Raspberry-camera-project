@@ -260,6 +260,7 @@ void CameraApp::requestComplete(libcamera::Request *request)
         auto gain = metadata.get(libcamera::controls::AnalogueGain);
         if (gain) {
             self->iso_ = static_cast<int>(*gain * 100.0f);
+            if (self->sharedState_) self->sharedState_->iso.store(self->iso_);
         }
     }
 
