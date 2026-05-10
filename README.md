@@ -186,5 +186,12 @@ flowchart TD
 - 3.5” touchscreen (480x320 resolution)
 - GPIO buttons (optional, for shutter/record control)
 
+## Camera photo
+<img width="2048" height="1536" alt="image" src="https://github.com/user-attachments/assets/eab8d8f1-4969-4abc-8b64-a4aa272a1ea3" />
+<img width="1280" height="960" alt="image" src="https://github.com/user-attachments/assets/06a6cb75-07ba-449d-939c-cf52f5ec0d93" />
+- Aperture F2.8 / ISO 767 / Shutter speed 1/125s
+<img width="1456" height="1088" alt="image" src="https://github.com/user-attachments/assets/1d83fd80-68c6-41ef-83c6-0d2e2bacc58e" />
+
+
 ## License
 MIT License – open source and free to modify for your embedded camera project.
