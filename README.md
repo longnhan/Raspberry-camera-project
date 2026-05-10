@@ -34,6 +34,111 @@ The project is optimized for embedded performance and structured for scalability
 
 ---
 
+## Software Architecture
+
+The application is structured in three layers:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Application Layer  (app/)                  │
+│                                                              │
+│   main.cpp ──spawn──► buttonThread ──► shutterQueue          │
+│                  └──► cameraThread ◄── shutterQueue          │
+│                  └──► guiThread (Screen)                     │
+│                                                              │
+│   Shared: CameraState (ISO · ShutterSpeed · Aperture)        │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                  Middleware Layer  (middleware/)              │
+│                                                              │
+│   camera_control  │  gui (GUIDisplay)  │  gpio              │
+│   libcamera+OpenCV│  SDL2 Renderer     │  sysfs driver      │
+│   ─────────────── │  ─────────────     │  ────────          │
+│   storage         │  logging                                 │
+│   photo_management│  debug / status / error                  │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                      Hardware Layer                          │
+│                                                              │
+│   CM4 SoC  │  IMX296 GSC (CSI)  │  3.5" LCD  │  GPIO Btn   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+```mermaid
+graph TB
+    subgraph APP["Application Layer  (app/)"]
+        MAIN["main.cpp\nEntry Point"]
+        BT["buttonThread"]
+        CT["cameraThread"]
+        GT["Screen::guiThread"]
+        SQ(["shutterQueue\nstd::queue&lt;int&gt;"])
+        CS["CameraState\nISO · SS · Aperture"]
+    end
+
+    subgraph MW["Middleware  (middleware/)"]
+        CC["camera_control\nlibcamera + OpenCV"]
+        GUI["gui — GUIDisplay\nSDL2 Renderer"]
+        GPIO["gpio\nsysfs GPIO Driver"]
+        STOR["storage\nphoto_management"]
+        LOG["logging"]
+    end
+
+    subgraph HW["Hardware"]
+        CAM["IMX296 GSC Camera\nCSI Interface"]
+        LCD["3.5in LCD\n480x320"]
+        BTN["GPIO Button\nGPIO16"]
+        DISK["Filesystem\n/home/pi/media/"]
+    end
+
+    MAIN -->|"spawn"| BT & CT & GT
+    BT --> GPIO --> BTN
+    BT -->|"push shot_count"| SQ --> CT
+    CT --> CC --> CAM
+    CT --> STOR --> DISK
+    GT --> CC
+    GT --> GUI --> LCD
+    CC -.->|"shared_ptr"| CS
+    CS -.->|"read"| GT
+```
+
+### Thread Responsibilities
+
+| Thread | Module | Role |
+|---|---|---|
+| `buttonThread` | `Button` / `gpio` | Polls GPIO16 every 10 ms, increments shot counter, pushes to `shutterQueue` |
+| `cameraThread` | `CameraApp` / `camera_control` | Dequeues capture signals, calls `captureImage()`, writes JPEG to disk |
+| `guiThread` | `Screen` / `gui` | SDL2 event loop, pulls latest preview frame, draws UI overlays, presents to LCD |
+
+---
+
+## Data Flow
+
+```mermaid
+flowchart TD
+    A([GPIO Button Press]) -->|"GPIO16 sampled every 10 ms"| B["buttonThread\nupdateButtonState()"]
+    B -->|"shot_count +1"| C[("shutterQueue")]
+    C -->|"dequeue"| D["cameraThread\ncaptureImage()"]
+    D -->|"libcamera still stream"| E["CameraApp\nrequestComplete callback"]
+    E -->|"OpenCV JPEG encode"| F[("JPEG file\n/home/pi/media/PXXX.jpg")]
+
+    G(["libcamera Preview Stream\nrequestComplete"]) --> H["CameraApp\ncurrentPreviewFrame_ mutex"]
+    H -->|"getLatestPreviewFrame()"| I["guiThread\nScreen::guiThread"]
+
+    J(["SDL2 Events\nKeyboard / Quit"]) --> I
+    K["CameraState\nISO · SS · Aperture"] -->|"shared_ptr read\nevery ~1 s"| I
+
+    I -->|"OpenCV putText\nUI overlays"| L["GUIDisplay\nrenderFrame()"]
+    L -->|"SDL2 texture upload\n& present"| M(["3.5in LCD Display\n480x320"])
+```
+
+**Capture path** — Button press → `shutterQueue` → `cameraThread` → libcamera still capture → JPEG saved to disk.
+
+**Preview path** — libcamera preview stream → `requestComplete` callback → mutex-protected `cv::Mat` → `guiThread` pulls frame → OpenCV UI overlays → SDL2 renders to LCD.
+
+**Shared state** — `CameraState` is a `shared_ptr` owned by `CameraApp` and read by `guiThread` every second to refresh the ISO/shutter/aperture overlay text.
+
+---
+
 ## OS Information
 - OS: Raspbian GNU/Linux 11 (bullseye)
 - Kernel: 6.6.67-v8+
